@@ -48,7 +48,6 @@ export function fontMatcher(state, alpha = 1.0) {
 export class AttStat {
 	constructor(stat, data = null) {
 		this._stat = stat;
-		console.log(data);
 		if ([attendance.late, attendance.makeup].indexOf(stat) > -1) {
 			this._data = data;
 		}

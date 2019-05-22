@@ -2,6 +2,7 @@ import React, { Fragment, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core';
 
+import { ThemeProvider } from '@material-ui/styles';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import DialogTitle from '@material-ui/core/DialogTitle';
@@ -19,8 +20,7 @@ import AttendCard from '../Molcules/AttendCard';
 import styled from 'styled-components';
 import chroma from 'chroma-js';
 
-import { MuiPickersUtilsProvider, TimePicker, DatePicker } from '@material-ui/pickers';
-import DateFnsUtils from '@date-io/date-fns';
+import { TimePicker, DatePicker } from '@material-ui/pickers';
 
 const emails = [
 	'username@gmail.comusername@gmail.comusername@gmail.comusername@gmail.comusername@gmail.comusername@gmail.comusername@gmail.comusername@gmail.comusername@gmail.comusername@gmail.comusername@gmail.com',
@@ -128,11 +128,11 @@ function PaperComponent({ pos: { x, y, width, height }, attObj, ...other }) {
 	};
 
 	const StyledPaper = withStyles(style)(Paper);
-	let tmpAttObj = new AttStat(attObj.stat, attObj.data);
+	const [att, setAtt] = useState(new AttStat(attObj.stat, attObj.data));
 	return (
 		<Fragment>
 			<FloatedAttendCard status={attObj} elevated={true} x={x} y={y} width={width} height={height}>
-				{tmpAttObj.data && tmpAttObj.dataToString()}
+				{att.data && att.dataToString()}
 			</FloatedAttendCard>
 			<StyledPaper {...other} />
 		</Fragment>
@@ -169,7 +169,7 @@ const materialTheme = color =>
 				day: {
 					color: foreground.red
 				},
-				isSelected: {
+				daySelected: {
 					backgroundColor: color,
 					'&:hover': {
 						backgroundColor: chroma(color)
@@ -180,33 +180,37 @@ const materialTheme = color =>
 				current: {
 					color
 				}
-			},
-			MuiPickersModal: {
-				dialogAction: {
-					color
-				}
 			}
 		}
 	});
 
+const getDayMaskRand = (year, month) => {
+	return new Array(31).fill(0).map(_ => {
+		if (Math.random() < 0.5) {
+			return 1;
+		} else {
+			return 0;
+		}
+	});
+};
 function MakeUpPicker({ value, handleChange }) {
 	const now = new Date();
-	const getDayMaskRand = (year, month) => {
-		return new Array(31).fill(0).map(_ => {
-			if (Math.random() < 0.5) {
-				return 1;
-			} else {
-				return 0;
-			}
-		});
-	};
+	// const getDayMaskRand = (year, month) => {
+	// 	return new Array(31).fill(0).map(_ => {
+	// 		if (Math.random() < 0.5) {
+	// 			return 1;
+	// 		} else {
+	// 			return 0;
+	// 		}
+	// 	});
+	// };
 	const [mask, setMask] = useState(getDayMaskRand(now.getYear(), now.getMonth() + 1));
 
 	function onMonthChange(date) {
 		setMask(getDayMaskRand(date.getYear(), date.getMonth() + 1));
 	}
 	return (
-		<MuiThemeProvider theme={materialTheme(colorMatcher(attendance.makeup))}>
+		<ThemeProvider theme={materialTheme(colorMatcher(attendance.makeup))}>
 			<DatePicker
 				margin="normal"
 				label="Make up for"
@@ -217,12 +221,12 @@ function MakeUpPicker({ value, handleChange }) {
 				autoOk
 				disableFuture={true}
 				onMonthChange={onMonthChange}
-				shouldDisableDate={day => {
-					if (mask[day.getDate() - 1] === 1) return false;
-					return true;
-				}}
+				// shouldDisableDate={day => {
+				// 	if (mask[day.getDate() - 1] === 1) return false;
+				// 	return true;
+				// }}
 			/>
-		</MuiThemeProvider>
+		</ThemeProvider>
 	);
 }
 
@@ -231,7 +235,7 @@ function AttendanceDetail({ attObj, handleChange }) {
 
 	if (stat === attendance.late) {
 		return (
-			<MuiThemeProvider theme={materialTheme(colorMatcher(attendance.late))}>
+			<ThemeProvider theme={materialTheme(colorMatcher(attendance.late))}>
 				<TimePicker
 					margin="normal"
 					label="Late at"
@@ -239,7 +243,7 @@ function AttendanceDetail({ attObj, handleChange }) {
 					name="data"
 					onChange={value => handleChange({ target: { name: 'data', value } })}
 				/>
-			</MuiThemeProvider>
+			</ThemeProvider>
 		);
 	} else if (stat === attendance.makeup) {
 		return <MakeUpPicker value={data} handleChange={handleChange} />;
@@ -255,6 +259,7 @@ function SimpleDialog({ name, targetDate, onClose, attendanceValue, classes, pos
 	});
 
 	function onEnter() {
+		console.log('????');
 		updateAttObj({
 			stat: attendanceValue.stat,
 			data: attendanceValue.data || new Date()
