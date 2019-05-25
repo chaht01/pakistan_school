@@ -18,7 +18,7 @@ import ReactAutosuggestRemote from '../Molcules/ReactAutosuggestRemote';
 import { MuiPickersUtilsProvider, TimePicker, DatePicker } from '@material-ui/pickers';
 import ScheduleBullet from '../Molcules/ScheduleBullet';
 import FinalCheckDialog from '../Organism/FinalCheckDialog';
-import { foreground } from '../const/colors';
+import { foreground, fonts } from '../const/colors';
 import axios from 'axios';
 import Schedule from '../Organism/Schedule';
 
@@ -41,6 +41,9 @@ const styles = theme => ({
 	sectionHeading: {
 		...theme.typography.button,
 		fontSize: '1rem'
+	},
+	caption: {
+		color: fonts.red
 	},
 	paper: {
 		display: 'flex',
@@ -178,6 +181,9 @@ function OpenClass({ classes }) {
 
 						<FormGroup className={classes.marginNormal}>
 							<Typography className={classes.sectionHeading}>Schedule</Typography>
+							<Typography variant="caption" className={classes.caption}>
+								* This action cannot be modified after creation{' '}
+							</Typography>
 							<Schedule
 								editable
 								startDate={startDate}

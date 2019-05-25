@@ -138,7 +138,7 @@ function PaperComponent({ pos: { x, y, width, height }, attObj, ...other }) {
 	return (
 		<Fragment>
 			<FloatedAttendCard status={attObj} elevated={true} x={x} y={y} width={width} height={height}>
-				{att.dateToString()}
+				{att.date && att.dateToString()}
 			</FloatedAttendCard>
 			<StyledPaper {...other} />
 		</Fragment>

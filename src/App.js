@@ -18,6 +18,7 @@ import AppBar from './Organism/AppBar';
 import { makeStyles } from '@material-ui/styles';
 import { authority, defaultRoute } from './const/auth';
 import OpenClass from './pages/OpenClass';
+import ManageClass from './pages/ManageClass';
 import { DateConsumer } from './Context/DateContext';
 
 function renameKeys(obj) {
@@ -155,6 +156,17 @@ function App({ classes }) {
 			icon: null,
 			sidebar: () => <Fragment>Open Class</Fragment>,
 			main: () => <OpenClass />,
+			sidebarIndex: -1
+		},
+		{
+			path: '/manageclass/:classId',
+			to: '/manageclass',
+			private: true,
+			exact: true,
+			auth: [authority.ADMIN, authority.INSTRUCTOR],
+			icon: null,
+			sidebar: () => <Fragment>Manage Class</Fragment>,
+			main: () => <ManageClass />,
 			sidebarIndex: -1
 		},
 		{
