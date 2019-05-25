@@ -3,7 +3,7 @@ import { authority, getRolePriority } from '../const/auth';
 import axios from 'axios';
 
 const AuthContext = React.createContext();
-const local = true;
+const local = false;
 function AuthProvider({ children }) {
 	const { UNAUTH, AUTH, ADMIN, INSTRUCTOR, STUDENT } = authority;
 	const savedToken = localStorage.getItem('token');
