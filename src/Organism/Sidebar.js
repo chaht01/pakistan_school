@@ -68,7 +68,7 @@ function Sidebar({ routes, classes }) {
 						<Fragment key={i_index}>
 							<List>
 								{routes.filter(route => validateAuth(route.auth)).map((route, index) => (
-									<ListItem button key={index} component={Link} to={route.path}>
+									<ListItem button key={index} component={Link} to={route.to}>
 										<ListItemIcon>{route.icon}</ListItemIcon>
 										<ListItemText primary={route.sidebar()} />
 									</ListItem>

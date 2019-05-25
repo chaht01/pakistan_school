@@ -31,19 +31,17 @@ const StyledCheckbox = withStyles(Checkstyles)(Checkbox);
 
 const StyeldFormGroup = withStyles(FormStyles)(FormGroup);
 
-export function ScheduleBulletControl({ editable = false, initDays = [0, 0, 0, 0, 0, 0, 0] }) {
-	const weekdays = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-	const [checked, setChecked] = useState(initDays.map(v => v === 1));
+export function ScheduleBulletControl({ editable = false, initDays = [0, 0, 0, 0, 0, 0, 0], handleDays }) {
+	const weekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 	function changeValue(e, i, j) {
 		if (!editable) return;
-		setChecked(
-			checked.map((v, idx) => {
-				if (idx === i) {
-					return !v;
-				}
-				return v;
-			})
-		);
+		const updated = initDays.map((v, idx) => {
+			if (idx === i) {
+				return !v;
+			}
+			return v;
+		});
+		handleDays(updated);
 	}
 	return (
 		<SizeMe>
@@ -55,7 +53,7 @@ export function ScheduleBulletControl({ editable = false, initDays = [0, 0, 0, 0
 								<StyledCheckbox
 									icon={<Stop fontSize={size.width >= 245 ? 'large' : 'default'} />}
 									checkedIcon={<Stop fontSize={size.width >= 245 ? 'large' : 'default'} />}
-									checked={checked[i]}
+									checked={initDays[i]}
 									onChange={e => changeValue(e, i)}
 								/>
 							</Tooltip>
@@ -72,13 +70,17 @@ ScheduleBulletControl.propTypes = {
 	initDays: PropTypes.array
 };
 
-export default function ScheduleButllet({ label, editable, initDays, ...rest }) {
+export default function ScheduleBullet({ label, editable, initDays, handleDays, ...rest }) {
 	return (
-		<FormControl margin="dense" required {...rest}>
-			{label && <InputLabel shrink={true}>{label}</InputLabel>}
+		<FormControl margin="dense" required>
+			{label && (
+				<InputLabel shrink={true} {...rest}>
+					{label}
+				</InputLabel>
+			)}
 			<Input
 				inputComponent={ScheduleBulletControl}
-				inputProps={{ editable: true, initDays: [1, 0, 1, 0, 1, 0, 0], ...editable, ...initDays }}
+				inputProps={{ editable, initDays, handleDays, ...rest }}
 				disableUnderline={true}
 			/>
 		</FormControl>

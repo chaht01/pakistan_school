@@ -39,9 +39,9 @@ function ClassMoreController({ classes }) {
 	return (
 		<Fragment>
 			<Hidden mdDown>
-				<Button variant="contained" size="small" color="primary">
+				<Button variant="contained" size="small" color="primary" component={Link} to={options[0].path}>
 					<AddIcon className={classes.addIcon} />
-					Open Class
+					{options[0].label}
 				</Button>
 			</Hidden>
 			<Hidden mdUp>

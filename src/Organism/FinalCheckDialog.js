@@ -6,6 +6,9 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import axios from 'axios';
+import { format } from 'date-fns';
+import { withRouter } from 'react-router';
 
 const styles = theme => ({
 	dialog: {
@@ -20,7 +23,14 @@ const styles = theme => ({
 	paperWidthLg: 900
 });
 
-function FinalCheckDialog({ classes, triggerComponent: Trigger, scheduleComp: ScheduleComp }) {
+function FinalCheckDialog({
+	classes,
+	triggerComponent: Trigger,
+	scheduleComp: ScheduleComp,
+	toSave,
+	history,
+	location
+}) {
 	const [open, setOpen] = useState(false);
 
 	function handleClickOpen() {
@@ -29,6 +39,48 @@ function FinalCheckDialog({ classes, triggerComponent: Trigger, scheduleComp: Sc
 
 	function handleClose() {
 		setOpen(false);
+	}
+
+	async function save() {
+		const {
+			startDate: start_date,
+			endDate: end_date,
+			startTime: start_time,
+			endTime: end_time,
+			instructorChips: instructors,
+			studentChips: students,
+			className: name,
+			days: day_of_weeks,
+			building
+		} = toSave;
+		const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+		await axios({
+			method: 'post',
+			url: 'http://teaching.talk4u.kr/api/classrooms/',
+			data: {
+				name,
+				building,
+				end_date: format(end_date, 'yyyy-MM-dd'),
+				start_date: format(start_date, 'yyyy-MM-dd'),
+				student_ids: students.map(item => item.id),
+				instructor_ids: instructors.map(item => item.id),
+				schedule: {
+					start_time: format(start_time, 'hh:mm:ss'),
+					end_time: format(end_time, 'hh:mm:ss'),
+					day_of_weeks: day_of_weeks.reduce((acc, curr, idx) => {
+						if (curr) {
+							acc.push(weekdays[idx]);
+						}
+						return acc;
+					}, [])
+				}
+			}
+		})
+			.then(({ data: resolved }) => {
+				handleClose();
+				history.replace(`/classroom/${resolved.id}`);
+			})
+			.catch(() => {});
 	}
 
 	return (
@@ -52,7 +104,7 @@ function FinalCheckDialog({ classes, triggerComponent: Trigger, scheduleComp: Sc
 					<Button onClick={handleClose} color="default">
 						Cancel
 					</Button>
-					<Button onClick={handleClose} color="primary">
+					<Button onClick={save} color="primary">
 						Confirm
 					</Button>
 				</DialogActions>
@@ -61,4 +113,4 @@ function FinalCheckDialog({ classes, triggerComponent: Trigger, scheduleComp: Sc
 	);
 }
 
-export default withStyles(styles)(FinalCheckDialog);
+export default withRouter(withStyles(styles)(FinalCheckDialog));

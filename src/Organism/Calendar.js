@@ -71,7 +71,8 @@ const styles = theme => ({
 	},
 
 	studentContainer: {
-		paddingTop: 80
+		paddingTop: 80,
+		minHeight: '100%'
 	},
 	student: {
 		...calendarRow,
@@ -134,7 +135,6 @@ function StudentRow({ classes, student, classroom, name, absenceStatus, startDat
 function Calendar({ classes, absences = [], classroom, startDate, endDate, monInit = false, initDays }) {
 	const weekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 	const today = new Date();
-
 	const StudentRowComp = withStyles(styles)(StudentRow);
 	return (
 		<ThemeProvider theme={theme}>
@@ -162,16 +162,22 @@ function Calendar({ classes, absences = [], classroom, startDate, endDate, monIn
 				})}
 			</Paper>
 			<div className={classes.studentContainer}>
-				{absences.map(({ id, name, absenceStatus }) => (
-					<StudentRowComp
-						key={id}
-						classroom={classroom}
-						student={id}
-						name={name}
-						absenceStatus={absenceStatus}
-						startDate={startDate}
-					/>
-				))}
+				{classroom > 0 ? (
+					absences.map(({ id, name, absenceStatus }) => (
+						<StudentRowComp
+							key={id}
+							classroom={classroom}
+							student={id}
+							name={name}
+							absenceStatus={absenceStatus}
+							startDate={startDate}
+						/>
+					))
+				) : (
+					<Grid container justify="center" alignItems={'center'} className={classes.studentContainer}>
+						<Typography variant="h3">Make sure that you select any class XD</Typography>
+					</Grid>
+				)}
 			</div>
 		</ThemeProvider>
 	);

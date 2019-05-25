@@ -97,6 +97,7 @@ function App({ classes }) {
 	const routes = [
 		{
 			path: '/',
+			to: '/',
 			private: true,
 			exact: true,
 			auth: [authority.AUTH],
@@ -107,7 +108,8 @@ function App({ classes }) {
 			sidebarIndex: 0
 		},
 		{
-			path: '/classroom/:classId',
+			path: ['/classroom/:classId', '/classroom/'],
+			to: '/classroom/',
 			private: true,
 			exact: false,
 			auth: [authority.ADMIN, authority.INSTRUCTOR],
@@ -124,6 +126,7 @@ function App({ classes }) {
 		},
 		{
 			path: '/users',
+			to: '/users',
 			private: true,
 			exact: true,
 			auth: [authority.ADMIN, authority.INSTRUCTOR],
@@ -134,6 +137,7 @@ function App({ classes }) {
 		},
 		{
 			path: '/logout',
+			to: '/logout',
 			private: true,
 			exact: true,
 			auth: [authority.AUTH],
@@ -144,6 +148,7 @@ function App({ classes }) {
 		},
 		{
 			path: '/openclass',
+			to: '/openclass',
 			private: true,
 			exact: true,
 			auth: [authority.ADMIN, authority.INSTRUCTOR],
@@ -154,6 +159,7 @@ function App({ classes }) {
 		},
 		{
 			path: '/login',
+			to: '/login',
 			private: false,
 			exact: true,
 			auth: [authority.UNAUTH, authority.AUTH],

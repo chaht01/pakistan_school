@@ -13,6 +13,7 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import { attendance, asyncAttendance } from '../const/attendance';
 import format from 'date-fns/format';
+import { DateConsumer } from '../Context/DateContext';
 import axios from 'axios';
 
 const Carousel = styled.div`
@@ -162,17 +163,23 @@ function Dashboard({ classes, range: [startDate, endDate] }) {
 
 	return (
 		<Fragment>
-			<Statbar
-				adornment={
-					<FormControl className={classes.formControl}>
-						<Select value={building} autoWidth displayEmpty name="building" onChange={handleChange}>
-							{buildings.map(b => <MenuItem value={b.id}>{b.name}</MenuItem>)}
-						</Select>
-					</FormControl>
-				}
-			>
-				<PreviewStepper classInfo={classInfo} />
-			</Statbar>
+			<DateConsumer>
+				{({ globalNow: selectedDate }) => (
+					<Statbar
+						adornment={
+							<FormControl className={classes.formControl}>
+								<Select value={building} autoWidth displayEmpty name="building" onChange={handleChange}>
+									{buildings.map(b => <MenuItem value={b.id}>{b.name}</MenuItem>)}
+								</Select>
+							</FormControl>
+						}
+						building={building}
+						current={selectedDate}
+					>
+						<PreviewStepper classInfo={classInfo} />
+					</Statbar>
+				)}
+			</DateConsumer>
 		</Fragment>
 	);
 }

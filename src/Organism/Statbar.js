@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { withStyles } from '@material-ui/core';
 import withWidth, { isWidthUp, isWidthDown } from '@material-ui/core/withWidth';
 import { foreground } from '../const/colors';
@@ -9,6 +9,8 @@ import { ThemeProvider } from '@material-ui/styles';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Container from '@material-ui/core/Container';
+import axios from 'axios';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 
 const defaultTheme = createMuiTheme();
 let theme = createMuiTheme({
@@ -64,8 +66,69 @@ const styles = theme => ({
 	}
 });
 
-function Statbar({ classes, width, dateRagne, adornment, children }) {
+function Statbar({ classes, width, adornment, building = -1, classroom = -1, children, current }) {
+	const [timer, setTimer] = useState(new Date());
+	const [todayStat, setTodayStat] = useState(0);
+	const [weekStat, setWeekStat] = useState(0);
+	const [monthStat, setMonthStat] = useState(0);
 	const space = isWidthDown('sm', width) ? 90 : isWidthUp('lg', width) ? 150 : 120;
+
+	function tick() {
+		setTimer(new Date());
+	}
+
+	useEffect(
+		() => {
+			var timerID = setInterval(() => tick(), 3000);
+			async function getStatistics(start_date, end_date, setStat) {
+				if (building > 0 || classroom > 0) {
+					try {
+						let { data: { total_absence_count: stat } } = await axios({
+							method: 'get',
+							url:
+								classroom > 0
+									? `http://teaching.talk4u.kr/api/statistics/buildings/${building}/classrooms/${classroom}/absence-statistics/`
+									: `http://teaching.talk4u.kr/api/statistics/buildings/${building}/absence-statistics/`,
+							params: {
+								start_date,
+								end_date
+							}
+						});
+						setStat(stat);
+					} catch (err) {
+						setStat('?');
+					}
+				} else {
+					setStat('?');
+				}
+			}
+
+			getStatistics(format(current, 'yyyy-MM-dd'), format(current, 'yyyy-MM-dd'), setTodayStat);
+			getStatistics(
+				format(startOfWeek(current), 'yyyy-MM-dd'),
+				format(endOfWeek(current), 'yyyy-MM-dd'),
+				setWeekStat
+			);
+
+			const sow = startOfWeek(current);
+			let som, eom;
+			if (sow.getMonth() !== current.getMonth()) {
+				som = startOfMonth(subMonths(current, 1));
+				eom = endOfMonth(subMonths(current, 1));
+			} else {
+				som = startOfMonth(current);
+				eom = endOfMonth(current);
+			}
+
+			getStatistics(format(som, 'yyyy-MM-dd'), format(eom, 'yyyy-MM-dd'), setMonthStat);
+
+			return function cleanup() {
+				clearInterval(timerID);
+			};
+		},
+		[timer, current, building]
+	);
+
 	return (
 		<ThemeProvider theme={theme}>
 			<Backbone
@@ -82,7 +145,7 @@ function Statbar({ classes, width, dateRagne, adornment, children }) {
 											</Typography>
 										</Grid>
 										<Grid item>
-											<Typography variant="h3">32</Typography>
+											<Typography variant="h3">{todayStat}</Typography>
 										</Grid>
 									</Grid>
 								</Container>
@@ -94,7 +157,7 @@ function Statbar({ classes, width, dateRagne, adornment, children }) {
 											</Typography>
 										</Grid>
 										<Grid item>
-											<Typography variant="h3">32</Typography>
+											<Typography variant="h3">{weekStat}</Typography>
 										</Grid>
 									</Grid>
 								</Container>
@@ -106,7 +169,7 @@ function Statbar({ classes, width, dateRagne, adornment, children }) {
 											</Typography>
 										</Grid>
 										<Grid item>
-											<Typography variant="h3">32</Typography>
+											<Typography variant="h3">{monthStat}</Typography>
 										</Grid>
 									</Grid>
 								</Container>

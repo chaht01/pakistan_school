@@ -2,6 +2,7 @@ import React, { Fragment, useState, useEffect } from 'react';
 import { PropTypes } from 'prop-types';
 import { withStyles, createMuiTheme, responsiveFontSizes } from '@material-ui/core/styles';
 import { withRouter } from 'react-router';
+import { DateConsumer } from '../Context/DateContext';
 import Backbone, { StructuredBar, StructuredContent } from '../Molcules/Backbone';
 import { AuthConsumer } from '../Context/AuthContext';
 import AbsenceCounter from '../Organism/AbsenceCounter';
@@ -72,7 +73,8 @@ const styles = theme => ({
 function ClassRoom({ classes, title, lecturers = [], absences, match, range: [startDate, endDate] }) {
 	const { params: { classId }, path } = match;
 	const [classrooms, setClassrooms] = useState([]);
-	const [selectedClassroom, setSelectedClassroom] = useState(Number(classId));
+	const [selectedClassroom, setSelectedClassroom] = useState(classId > 0 ? Number(classId) : -1);
+	const [building, setBuilding] = useState(-1);
 	const [targetClass, setTargetClass] = useState(null);
 	useEffect(
 		() => {
@@ -89,11 +91,13 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 				});
 				setClassrooms(classrooms);
 
-				const targetClass = classrooms.find(classroom => classroom.id === Number(classId));
+				const targetClass = classrooms.find(classroom => classroom.id == classId);
+				console.log(targetClass);
 				if (!targetClass) {
 					setSelectedClassroom(-1);
 					setTargetClass(null);
 				} else {
+					setBuilding(targetClass.building);
 					const targetClass_with_schedule = {
 						...targetClass,
 						schedule: {
@@ -157,9 +161,6 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 							remote: attd
 						});
 					});
-					// if (Object.keys(arrangeByStudent).length !== 0) {
-					console.log(arrangeByStudent);
-					// }
 
 					let absences = Object.entries(arrangeByStudent).map(([id, attendanceStatus]) => ({
 						id,
@@ -171,14 +172,14 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 						absences,
 						...rest
 					};
-					setSelectedClassroom(Number(classId));
+					setSelectedClassroom(targetClass.id);
 					setTargetClass(processed_targetClass);
 				}
 			}
 			fetchClassRoom();
 			return cleanup;
 		},
-		[startDate, endDate, match]
+		[startDate, endDate, classId]
 	);
 
 	const handleChange = event => {
@@ -187,85 +188,92 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 
 	return (
 		<Fragment>
-			<Statbar
-				adornment={
-					<ThemeProvider theme={theme}>
-						<Grid container alignItems="center" spacing={6}>
-							<Grid item>
-								<FormControl className={classes.formControl}>
-									<Select
-										value={selectedClassroom}
-										autoWidth
-										displayEmpty
-										name="class"
-										onChange={handleChange}
-									>
-										{classrooms.map(b => (
-											<MenuItem
-												key={b.id}
-												value={b.id}
-												component={Link}
-												to={path.replace(':classId', b.id)}
+			<DateConsumer>
+				{({ globalNow: selectedDate }) => (
+					<Statbar
+						building={building}
+						classroom={selectedClassroom}
+						adornment={
+							<ThemeProvider theme={theme}>
+								<Grid container alignItems="center" spacing={6}>
+									<Grid item>
+										<FormControl className={classes.formControl}>
+											<Select
+												value={selectedClassroom}
+												autoWidth
+												displayEmpty
+												name="class"
+												onChange={handleChange}
 											>
-												<ListItemText
-													primary={b.name}
-													secondary={`${targetClass
-														? `${targetClass.schedule.startTime} ~ ${targetClass.schedule
-																.endTime}`
-														: `loading...`}`}
-												/>
-											</MenuItem>
-										))}
-									</Select>
-								</FormControl>
-							</Grid>
-							<Hidden smDown>
-								<Grid item>
-									<Grid container direction="column" alignItems="center">
-										<Grid item>
-											<Typography variant="body">{lecturers[0]}</Typography>
-											{lecturers.length > 1 && (
-												<Fragment>
-													<Typography variant="caption">{`  and  `}</Typography>
-													<IconButton size="small" color="default">
-														<Typography variant="caption">
-															+{lecturers.length - 1}
-														</Typography>
-													</IconButton>
-												</Fragment>
-											)}
-										</Grid>
-										<Grid item>
-											<ThemeProvider
-												theme={createMuiTheme({
-													palette: {
-														primary: {
-															main: fonts.gray
-														}
-													}
-												})}
-											>
-												<Button variant="outlined" size="small" color="primary">
-													<SettingsIcon className={classes.settingsIcon} />
-													Manage
-												</Button>
-											</ThemeProvider>
-										</Grid>
+												{classrooms.map(b => (
+													<MenuItem
+														key={b.id}
+														value={b.id}
+														component={Link}
+														to={`/classroom/${b.id}/`}
+													>
+														<ListItemText
+															primary={b.name}
+															secondary={`${targetClass
+																? `${targetClass.schedule.startTime} ~ ${targetClass
+																		.schedule.endTime}`
+																: `loading...`}`}
+														/>
+													</MenuItem>
+												))}
+											</Select>
+										</FormControl>
 									</Grid>
+									<Hidden smDown>
+										<Grid item>
+											<Grid container direction="column" alignItems="center">
+												<Grid item>
+													<Typography variant="body">{lecturers[0]}</Typography>
+													{lecturers.length > 1 && (
+														<Fragment>
+															<Typography variant="caption">{`  and  `}</Typography>
+															<IconButton size="small" color="default">
+																<Typography variant="caption">
+																	+{lecturers.length - 1}
+																</Typography>
+															</IconButton>
+														</Fragment>
+													)}
+												</Grid>
+												<Grid item>
+													<ThemeProvider
+														theme={createMuiTheme({
+															palette: {
+																primary: {
+																	main: fonts.gray
+																}
+															}
+														})}
+													>
+														<Button variant="outlined" size="small" color="primary">
+															<SettingsIcon className={classes.settingsIcon} />
+															Manage
+														</Button>
+													</ThemeProvider>
+												</Grid>
+											</Grid>
+										</Grid>
+									</Hidden>
 								</Grid>
-							</Hidden>
-						</Grid>
-					</ThemeProvider>
-				}
-			>
-				<Calendar
-					classroom={targetClass ? targetClass.id : -1}
-					absences={targetClass ? targetClass.absences : []}
-					startDate={startDate}
-					endDate={endDate}
-					initDays={targetClass ? targetClass.schedule.initDays : [0, 0, 0, 0, 0, 0]}
-				/>
-			</Statbar>
+							</ThemeProvider>
+						}
+						current={selectedDate}
+					>
+						<Calendar
+							classroom={selectedClassroom > 0 ? selectedClassroom : -1}
+							absences={targetClass ? targetClass.absences : []}
+							startDate={startDate}
+							endDate={endDate}
+							initDays={targetClass ? targetClass.schedule.initDays : [0, 0, 0, 0, 0, 0]}
+						/>
+					</Statbar>
+				)}
+			</DateConsumer>
 		</Fragment>
 	);
 }

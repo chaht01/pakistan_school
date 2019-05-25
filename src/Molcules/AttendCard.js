@@ -11,7 +11,8 @@ const Card = styled.div`
   justify-content: center;
   align-items: center;
 	width: 100%;
-	height: 100%;
+  height: 100%;
+  text-align: center;
   background-color: ${props => colorMatcher(props.status, props.elevated ? 1.0 : 0.5)};
   color: ${props => fontMatcher(props.status)};
   font-size: 1.4em;

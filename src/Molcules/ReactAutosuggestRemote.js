@@ -15,13 +15,12 @@ import { useState } from 'react';
 
 function renderInput(inputProps) {
 	const { value, onChange, chips, ...other } = inputProps;
-	return <ChipInput inputValue={value} onUpdateInput={onChange} value={chips} {...other} />;
+	return <ChipInput inputValue={value} onUpdateInput={onChange} value={chips.map(c => c.profile.name)} {...other} />;
 }
 
 function renderSuggestion(suggestion, { query, isHighlighted }) {
-	const matches = match(suggestion.name, query);
-	const parts = parse(suggestion.name, matches);
-
+	const matches = match(suggestion.profile.name, query);
+	const parts = parse(suggestion.profile.name, matches);
 	return (
 		<MenuItem
 			selected={isHighlighted}
@@ -54,26 +53,8 @@ function renderSuggestionsContainer(options) {
 }
 
 function getSuggestionValue(suggestion) {
-	return suggestion.name;
+	return suggestion.profile.name;
 }
-
-// function getSuggestions(value) {
-// 	const inputValue = value.trim().toLowerCase();
-// 	const inputLength = inputValue.length;
-// 	let count = 0;
-
-// 	return inputLength === 0
-// 		? []
-// 		: suggestions.filter(suggestion => {
-// 				const keep = count < 5 && suggestion.name.toLowerCase().slice(0, inputLength) === inputValue;
-
-// 				if (keep) {
-// 					count += 1;
-// 				}
-
-// 				return keep;
-// 			});
-// }
 
 const styles = theme => ({
 	container: {
@@ -102,40 +83,30 @@ const styles = theme => ({
 });
 
 function ReactAutosuggestRemote(props) {
-	const CancelToken = axios.CancelToken;
-	const source = CancelToken.source();
-	const [chips, setChips] = useState([]);
+	const { chips, setChips } = props;
+
 	const [textFieldInput, setTextFieldInput] = useState('');
-	const [suggestions, setSuggestions] = useState([]);
+	const suggestions = props.dataSource;
 
-	async function handleSuggestionsFetchRequested({ value }) {
-		axios
-			.get(`https://restcountries.eu/rest/v2/name/${value}`, { cancelToken: source.token })
-			.then(response => {
-				setSuggestions(response.data || []);
-			})
-			.catch(function(thrown) {
-				if (axios.isCancel(thrown)) {
-					console.log('Request canceled', thrown.message);
-				} else {
-					// handle error
-				}
-			});
-	}
+	async function handleSuggestionsFetchRequested({ value }) {}
 
-	const handleSuggestionsClearRequested = () => {
-		setSuggestions([]);
-	};
+	const handleSuggestionsClearRequested = () => {};
 
 	const handletextFieldInputChange = (event, { newValue }) => {
 		setTextFieldInput(newValue);
 	};
 
 	const handleAddChip = chip => {
-		const found = suggestions.find(c => {
-			return c.name.toLowerCase() === chip.toLowerCase();
-		});
-		setChips([...chips, found.name]);
+		let found;
+		if (typeof chip === 'string') {
+			found = suggestions.find(c => c.profile.name === chip);
+		} else {
+			found = suggestions.find(c => c.id === chip.id);
+		}
+
+		if (found && !chips.find(c => c.id === found.id)) {
+			setChips([...chips, found]);
+		}
 		setTextFieldInput('');
 	};
 
@@ -144,10 +115,6 @@ function ReactAutosuggestRemote(props) {
 		temp.splice(index, 1);
 		setChips(temp);
 	};
-
-	const validateChip = chip =>
-		!chips.find(c => c.toLowerCase() === chip.toLowerCase()) &&
-		suggestions.find(c => c.name.toLowerCase() === chip.toLowerCase());
 
 	const { classes, ...rest } = props;
 
@@ -166,8 +133,8 @@ function ReactAutosuggestRemote(props) {
 			renderSuggestionsContainer={renderSuggestionsContainer}
 			getSuggestionValue={getSuggestionValue}
 			renderSuggestion={renderSuggestion}
-			onSuggestionSelected={(e, { suggestionValue }) => {
-				handleAddChip(suggestionValue);
+			onSuggestionSelected={(e, { suggestion }) => {
+				handleAddChip(suggestion);
 				e.preventDefault();
 			}}
 			focusInputOnSuggestionClick={false}
@@ -178,15 +145,9 @@ function ReactAutosuggestRemote(props) {
 				onChange: handletextFieldInputChange,
 				value: textFieldInput,
 				allowDuplicates: false,
-				onAdd: chip => handleAddChip(chip),
-				onDelete: (chip, index) => handleDeleteChip(chip, index),
-				onBeforeAdd: chip => {
-					const ret = validateChip(chip);
-					if (!ret) {
-						setTextFieldInput('');
-					}
-					return ret;
-				},
+				onAdd: handleAddChip,
+				onDelete: handleDeleteChip,
+
 				...rest
 			}}
 		/>
