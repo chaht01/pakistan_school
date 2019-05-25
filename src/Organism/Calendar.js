@@ -1,4 +1,5 @@
 import React, { Fragment } from 'react';
+import { Link } from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
 import AbsenceDate from '../Organism/AbsenceDate';
 import { createMuiTheme, responsiveFontSizes, withStyles } from '@material-ui/core/styles';
@@ -10,6 +11,8 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import Avatar from '@material-ui/core/Avatar';
+import Button from '@material-ui/core/Button';
+import AddIcon from '@material-ui/icons/Add';
 import Hidden from '@material-ui/core/Hidden';
 import Paper from '@material-ui/core/Paper';
 import format from 'date-fns/format';
@@ -132,7 +135,7 @@ function StudentRow({ classes, student, classroom, name, absenceStatus, startDat
 	);
 }
 
-function Calendar({ classes, absences = [], classroom, startDate, endDate, monInit = false, initDays }) {
+function Calendar({ classes, absences = [], classroom, classrooms, startDate, endDate, monInit = false, initDays }) {
 	const weekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 	const today = new Date();
 	const StudentRowComp = withStyles(styles)(StudentRow);
@@ -162,7 +165,15 @@ function Calendar({ classes, absences = [], classroom, startDate, endDate, monIn
 				})}
 			</Paper>
 			<div className={classes.studentContainer}>
-				{classroom > 0 ? (
+				{classrooms.length == 0 ? (
+					<Grid container justify="center" alignItems={'center'} className={classes.studentContainer}>
+						<Typography variant="h3">No class to be displayed</Typography>
+						<Button variant="contained" size="small" color="primary" component={Link} to={'/openclass'}>
+							<AddIcon className={classes.addIcon} />
+							Open Class
+						</Button>
+					</Grid>
+				) : classroom > 0 ? (
 					absences.map(({ id, name, absenceStatus }) => (
 						<StudentRowComp
 							key={id}

@@ -68,13 +68,13 @@ function SignIn(props) {
 							<form
 								className={classes.form}
 								onSubmit={e => {
-									login(e.target.email.value, e.target.password.value);
+									login(e.target.id.value, e.target.password.value);
 									e.preventDefault();
 								}}
 							>
 								<FormControl margin="normal" required fullWidth>
-									<InputLabel htmlFor="email">Email Address</InputLabel>
-									<Input id="email" name="email" autoComplete="email" autoFocus />
+									<InputLabel htmlFor="id">ID</InputLabel>
+									<Input id="id" name="id" autoComplete="id" autoFocus />
 								</FormControl>
 								<FormControl margin="normal" required fullWidth>
 									<InputLabel htmlFor="password">Password</InputLabel>
@@ -85,10 +85,6 @@ function SignIn(props) {
 										autoComplete="current-password"
 									/>
 								</FormControl>
-								<FormControlLabel
-									control={<Checkbox value="remember" color="primary" />}
-									label="Remember me"
-								/>
 								<Button
 									type="submit"
 									fullWidth

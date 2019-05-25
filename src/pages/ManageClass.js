@@ -1,4 +1,5 @@
 import React, { useState, Fragment, useEffect } from 'react';
+import { withRouter } from 'react-router';
 import withStyles from '@material-ui/core/styles/withStyles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Grid from '@material-ui/core/Grid';
@@ -84,49 +85,72 @@ const styles = theme => ({
 	// scheduleBulletControl: theme.Input.FormControl
 });
 
-function ManageClass({
-	classes,
-	start_date,
-	end_date,
-	start_time,
-	end_time,
-	instructors,
-	students,
-	name,
-	day_of_weeks,
-	building: buildingId
-}) {
-	const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+function ManageClass({ classes, match, history }) {
+	const { params: { classId }, path } = match;
+	if (!classId || classId <= 0 || isNaN(classId)) {
+		history.goBack();
+	}
+
+	const [classroom, setClassroom] = useState(null);
 	const [instructorPool, setInstructorPool] = useState([]);
 	const [studentPool, setStudentPool] = useState([]);
-	const [instructorChips, setInstructorChips] = useState({ value: [], error: false, dirty: false });
-	const [studentChips, setStudentChips] = useState({ value: [], error: false, dirty: false });
-	const [className, handleClassName] = useState({ value: '', error: false, dirty: false });
-	const [startDate, handleStartDate] = useState({ value: new Date(start_date), error: false, dirty: true });
-	const [endDate, handleEndDate] = useState({ value: new Date(end_date), error: false, dirty: true });
-	const [startTime, handleStartTime] = useState({
-		value: new Date(`${start_date} ${start_time}`),
-		error: false,
-		dirty: true
-	});
-	const [endTime, handleEndTime] = useState({
-		value: new Date(`${end_date} ${end_time}`),
-		error: false,
-		dirty: true
-	});
-	const [days, handleDays] = useState({
-		value: weekdays.map(weekday => (day_of_weeks.indexOf(weekday) > -1 ? 1 : 0)),
-		error: false,
-		dirty: false
-	});
+	const [instructorChips, setInstructorChips] = useState({ value: [], error: false, dirty: true });
+	const [studentChips, setStudentChips] = useState({ value: [], error: false, dirty: true });
+	const [className, handleClassName] = useState({ value: '', error: false, dirty: true });
+	const [startDate, handleStartDate] = useState({ value: new Date(), error: false, dirty: true });
+	const [endDate, handleEndDate] = useState({ value: new Date(), error: false, dirty: true });
+	const [startTime, handleStartTime] = useState({ value: new Date(), error: false, dirty: true });
+	const [endTime, handleEndTime] = useState({ value: new Date(), error: false, dirty: true });
+	const [days, handleDays] = useState({ value: [0, 0, 0, 0, 0, 0, 0], error: false, dirty: true });
 	const [buildings, setBuildings] = useState([]);
 	const [building, setBuilding] = useState(-1);
+
+	useEffect(() => {
+		async function fetchClassroom() {
+			try {
+				const { data: classroom } = await axios({ method: 'get', url: `/api/classrooms/${classId}` });
+				setClassroom(classroom);
+				const {
+					start_date,
+					end_date,
+					start_time,
+					end_time,
+					instructors,
+					students,
+					name,
+					lessons,
+					building: buildingId
+				} = classroom;
+				const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+				const day_of_weeks = lessons.map(lesson => lesson.day_of_week);
+
+				setInstructorChips({ ...instructorChips, value: instructors, dirty: true });
+				setStudentChips({ ...studentChips, value: students, dirty: true });
+				handleClassName({ ...className, value: name, dirty: true });
+				handleStartDate({ ...startDate, value: new Date(start_date), dirty: true });
+				handleEndDate({ ...endDate, value: new Date(end_date), dirty: true });
+				handleStartTime({ ...startTime, value: new Date(`${start_date} ${start_time}`), dirty: true });
+				handleEndTime({
+					value: new Date(`${end_date} ${end_time}`),
+					dirty: true
+				});
+				handleDays({
+					...days,
+					value: weekdays.map(weekday => (day_of_weeks.indexOf(weekday) > -1 ? 1 : 0)),
+					dirty: true
+				});
+				setBuilding(buildingId);
+			} catch (err) {
+				history.goBack();
+			}
+		}
+		fetchClassroom();
+	}, []);
 
 	useEffect(() => {
 		async function fetchBuildings() {
 			const { data } = await axios({ method: 'get', url: '/api/buildings/' });
 			setBuildings(data);
-			setBuilding(buildingId);
 		}
 		fetchBuildings();
 	}, []);
@@ -148,6 +172,23 @@ function ManageClass({
 		}
 		fetchPool();
 	}, []);
+
+	async function save() {
+		await axios({
+			method: 'patch',
+			url: `/api/classrooms/${classroom.id}/`,
+			data: {
+				name: className.value,
+				building,
+				student_ids: studentChips.value.map(item => item.id),
+				instructor_ids: instructorChips.value.map(item => item.id)
+			}
+		})
+			.then(({ data: resolved }) => {
+				history.replace(`/classroom/${resolved.id}`);
+			})
+			.catch(() => {});
+	}
 
 	return (
 		<div className={classes.root}>
@@ -204,6 +245,7 @@ function ManageClass({
 							<Typography className={classes.sectionHeading}>Schedule</Typography>
 							<Schedule
 								editable
+								disabled
 								startDate={startDate}
 								handleStartDate={handleStartDate}
 								endDate={endDate}
@@ -279,59 +321,26 @@ function ManageClass({
 						</Button>
 					</Grid>
 					<Grid item>
-						<FinalCheckDialog
-							toSave={{
-								startDate: startDate.value,
-								endDate: endDate.value,
-								startTime: startTime.value,
-								endTime: endTime.value,
-								instructorChips: instructorChips.value,
-								studentChips: studentChips.value,
-								className: className.value,
-								days: days.value,
-								building
-							}}
-							scheduleComp={() => (
-								<Fragment>
-									<Typography className={classes.sectionHeading}>Schedule</Typography>
-									<Schedule
-										editable
-										startDate={startDate}
-										handleStartDate={handleStartDate}
-										endDate={endDate}
-										handleEndDate={handleEndDate}
-										startTime={startTime}
-										handleStartTime={handleStartTime}
-										endTime={endTime}
-										handleEndTime={handleEndTime}
-										initDays={days}
-										handleDays={handleDays}
-									/>
-								</Fragment>
-							)}
-							triggerComponent={props => (
-								<Button
-									{...props}
-									fullWidth
-									variant="contained"
-									color="primary"
-									className={classes.submit}
-									disabled={
-										!className.dirty ||
-										className.error ||
-										(!startDate.dirty || startDate.error) ||
-										(!endDate.dirty || endDate.error) ||
-										(!startTime.dirty || startTime.error) ||
-										(!endTime.dirty || endTime.error) ||
-										(!days.dirty || days.error) ||
-										(instructorChips.error || instructorChips.value.length === 0) ||
-										(studentChips.error || studentChips.value.length === 0)
-									}
-								>
-									Confirm
-								</Button>
-							)}
-						/>
+						<Button
+							fullWidth
+							variant="contained"
+							color="secondary"
+							className={classes.submit}
+							onClick={save}
+							disabled={
+								!className.dirty ||
+								className.error ||
+								(!startDate.dirty || startDate.error) ||
+								(!endDate.dirty || endDate.error) ||
+								(!startTime.dirty || startTime.error) ||
+								(!endTime.dirty || endTime.error) ||
+								(!days.dirty || days.error) ||
+								(instructorChips.error || instructorChips.value.length === 0) ||
+								(studentChips.error || studentChips.value.length === 0)
+							}
+						>
+							Save
+						</Button>
 					</Grid>
 				</Grid>
 			</main>
@@ -339,4 +348,4 @@ function ManageClass({
 	);
 }
 
-export default withStyles(styles)(ManageClass);
+export default withRouter(withStyles(styles)(ManageClass));

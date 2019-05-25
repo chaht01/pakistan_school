@@ -31,5 +31,6 @@ export const fonts = {
 	darkGray: '#494949',
 	gray: '#aaaaaa',
 	black: '#333333',
-	white: '#ffffff'
+	white: '#ffffff',
+	red: '#df422b'
 };

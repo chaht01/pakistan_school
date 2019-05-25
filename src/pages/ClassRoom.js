@@ -135,13 +135,15 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 						}
 					});
 					let arrangeByStudent = {};
-					attendances.map(attd => {
-						if (!(attd.student in arrangeByStudent)) {
-							arrangeByStudent[attd.student] = {
-								name: attd.student_name,
+					targetClass.students.map(({ id: studentId, profile: { name } }) => {
+						if (!(studentId in arrangeByStudent)) {
+							arrangeByStudent[studentId] = {
+								name,
 								absenceStatus: initDays.map(val => new AttStat(none))
 							};
 						}
+					});
+					attendances.map(attd => {
 						const offset = differenceInDays(new Date(attd.date), startDate);
 						const currentStatus = attendance[asyncAttendance[attd.status]];
 						const cat_status = [late, makeup].indexOf(currentStatus);
@@ -250,10 +252,18 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 															}
 														})}
 													>
-														<Button variant="outlined" size="small" color="primary">
-															<SettingsIcon className={classes.settingsIcon} />
-															Manage
-														</Button>
+														{targetClass !== null && (
+															<Button
+																variant="outlined"
+																size="small"
+																color="primary"
+																component={Link}
+																to={`/manageclass/${targetClass.id}`}
+															>
+																<SettingsIcon className={classes.settingsIcon} />
+																Manage
+															</Button>
+														)}
 													</ThemeProvider>
 												</Grid>
 											</Grid>
@@ -269,6 +279,7 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 							absences={targetClass ? targetClass.absences : []}
 							startDate={startDate}
 							endDate={endDate}
+							classrooms={classrooms}
 							initDays={targetClass ? targetClass.schedule.initDays : [0, 0, 0, 0, 0, 0]}
 						/>
 					</Statbar>

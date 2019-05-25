@@ -31,7 +31,7 @@ const StyledCheckbox = withStyles(Checkstyles)(Checkbox);
 
 const StyeldFormGroup = withStyles(FormStyles)(FormGroup);
 
-export function ScheduleBulletControl({ editable = false, initDays = [0, 0, 0, 0, 0, 0, 0], handleDays }) {
+export function ScheduleBulletControl({ editable = false, initDays = [0, 0, 0, 0, 0, 0, 0], handleDays, disabled }) {
 	const weekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 	function changeValue(e, i, j) {
 		if (!editable) return;
@@ -55,6 +55,7 @@ export function ScheduleBulletControl({ editable = false, initDays = [0, 0, 0, 0
 									checkedIcon={<Stop fontSize={size.width >= 245 ? 'large' : 'default'} />}
 									checked={initDays[i]}
 									onChange={e => changeValue(e, i)}
+									disabled={disabled}
 								/>
 							</Tooltip>
 						))}
@@ -70,7 +71,7 @@ ScheduleBulletControl.propTypes = {
 	initDays: PropTypes.array
 };
 
-export default function ScheduleBullet({ label, editable, initDays, handleDays, ...rest }) {
+export default function ScheduleBullet({ label, editable, initDays, handleDays, disabled, ...rest }) {
 	return (
 		<FormControl margin="dense" required>
 			{label && (
@@ -80,7 +81,7 @@ export default function ScheduleBullet({ label, editable, initDays, handleDays, 
 			)}
 			<Input
 				inputComponent={ScheduleBulletControl}
-				inputProps={{ editable, initDays, handleDays, ...rest }}
+				inputProps={{ editable, initDays, handleDays, disabled, ...rest }}
 				disableUnderline={true}
 			/>
 		</FormControl>

@@ -1,4 +1,5 @@
 import React, { Fragment } from 'react';
+import { withRouter } from 'react-router';
 import { withStyles } from '@material-ui/styles';
 import IconButton from '@material-ui/core/IconButton';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
@@ -18,16 +19,16 @@ const styles = theme => ({
 	}
 });
 
-const options = [
-	{ label: 'Open Class', icon: <AddIcon />, path: '/openclass' },
-	{ label: 'Manage', icon: <SettingsIcon />, path: 'openclass' }
-];
-
 const ITEM_HEIGHT = 48;
 
-function ClassMoreController({ classes }) {
+function ClassMoreController({ classes, match }) {
+	const { params: { classId }, path } = match;
 	const [anchorEl, setAnchorEl] = React.useState(null);
 	const open = Boolean(anchorEl);
+	const options = [
+		{ label: 'Open Class', icon: <AddIcon />, path: '/openclass', visible: true },
+		{ label: 'Manage', icon: <SettingsIcon />, path: `/manageclass/${classId}`, visible: classId > 0 }
+	];
 
 	function handleClick(event) {
 		setAnchorEl(event.currentTarget);
@@ -65,16 +66,19 @@ function ClassMoreController({ classes }) {
 						}
 					}}
 				>
-					{options.map(option => (
-						<MenuItem key={option.label} onClick={handleClose} component={Link} to={option.path}>
-							<ListItemIcon>{option.icon}</ListItemIcon>
-							<Typography variant="inherit">{option.label}</Typography>
-						</MenuItem>
-					))}
+					{options.map(
+						option =>
+							option.visible && (
+								<MenuItem key={option.label} onClick={handleClose} component={Link} to={option.path}>
+									<ListItemIcon>{option.icon}</ListItemIcon>
+									<Typography variant="inherit">{option.label}</Typography>
+								</MenuItem>
+							)
+					)}
 				</Menu>
 			</Hidden>
 		</Fragment>
 	);
 }
 
-export default withStyles(styles)(ClassMoreController);
+export default withRouter(withStyles(styles)(ClassMoreController));
