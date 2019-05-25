@@ -84,25 +84,49 @@ const styles = theme => ({
 	// scheduleBulletControl: theme.Input.FormControl
 });
 
-function OpenClass({ classes }) {
+function ManageClass({
+	classes,
+	start_date,
+	end_date,
+	start_time,
+	end_time,
+	instructors,
+	students,
+	name,
+	day_of_weeks,
+	building: buildingId
+}) {
+	const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 	const [instructorPool, setInstructorPool] = useState([]);
 	const [studentPool, setStudentPool] = useState([]);
 	const [instructorChips, setInstructorChips] = useState({ value: [], error: false, dirty: false });
 	const [studentChips, setStudentChips] = useState({ value: [], error: false, dirty: false });
 	const [className, handleClassName] = useState({ value: '', error: false, dirty: false });
-	const [startDate, handleStartDate] = useState({ value: new Date(), error: false, dirty: true });
-	const [endDate, handleEndDate] = useState({ value: new Date(), error: false, dirty: true });
-	const [startTime, handleStartTime] = useState({ value: new Date(), error: false, dirty: true });
-	const [endTime, handleEndTime] = useState({ value: new Date(), error: false, dirty: true });
-	const [days, handleDays] = useState({ value: [0, 0, 0, 0, 0, 0, 0], error: false, dirty: false });
+	const [startDate, handleStartDate] = useState({ value: new Date(start_date), error: false, dirty: true });
+	const [endDate, handleEndDate] = useState({ value: new Date(end_date), error: false, dirty: true });
+	const [startTime, handleStartTime] = useState({
+		value: new Date(`${start_date} ${start_time}`),
+		error: false,
+		dirty: true
+	});
+	const [endTime, handleEndTime] = useState({
+		value: new Date(`${end_date} ${end_time}`),
+		error: false,
+		dirty: true
+	});
+	const [days, handleDays] = useState({
+		value: weekdays.map(weekday => (day_of_weeks.indexOf(weekday) > -1 ? 1 : 0)),
+		error: false,
+		dirty: false
+	});
 	const [buildings, setBuildings] = useState([]);
 	const [building, setBuilding] = useState(-1);
 
 	useEffect(() => {
 		async function fetchBuildings() {
-			const { data } = await axios({ method: 'get', url: 'http://teaching.talk4u.kr/api/buildings/' });
+			const { data } = await axios({ method: 'get', url: '/api/buildings/' });
 			setBuildings(data);
-			setBuilding(data[0].id);
+			setBuilding(buildingId);
 		}
 		fetchBuildings();
 	}, []);
@@ -111,12 +135,12 @@ function OpenClass({ classes }) {
 		async function fetchPool() {
 			const { data: instructors } = await axios({
 				method: 'get',
-				url: 'http://teaching.talk4u.kr/api/users/',
+				url: '/api/users/',
 				params: { role: 'Instructor' }
 			});
 			const { data: students } = await axios({
 				method: 'get',
-				url: 'http://teaching.talk4u.kr/api/users/',
+				url: '/api/users/',
 				params: { role: 'Student' }
 			});
 			setInstructorPool(instructors);
@@ -315,4 +339,4 @@ function OpenClass({ classes }) {
 	);
 }
 
-export default withStyles(styles)(OpenClass);
+export default withStyles(styles)(ManageClass);

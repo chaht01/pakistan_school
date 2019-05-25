@@ -68,7 +68,7 @@ function Dashboard({ classes, range: [startDate, endDate] }) {
 
 	useEffect(() => {
 		async function fetchBuildings() {
-			const { data } = await axios({ method: 'get', url: 'http://teaching.talk4u.kr/api/buildings/' });
+			const { data } = await axios({ method: 'get', url: '/api/buildings/' });
 			setBuildings(data);
 			setBuilding(data[0].id);
 		}
@@ -81,7 +81,7 @@ function Dashboard({ classes, range: [startDate, endDate] }) {
 			async function fetchClassRoom() {
 				const { data: classrooms } = await axios({
 					method: 'get',
-					url: 'http://teaching.talk4u.kr/api/classrooms/',
+					url: '/api/classrooms/',
 					params: {
 						start_date__lte: format(startDate, 'yyyy-MM-dd'),
 						end_date__gte: format(endDate, 'yyyy-MM-dd')
@@ -107,7 +107,7 @@ function Dashboard({ classes, range: [startDate, endDate] }) {
 						const { initDays } = schedule;
 						let { data: attendances } = await axios({
 							method: 'get',
-							url: `http://teaching.talk4u.kr/api/classrooms/${id}/attendance/`,
+							url: `/api/classrooms/${id}/attendance/`,
 							params: {
 								date__gte: format(startDate, 'yyyy-MM-dd'),
 								date__lte: format(endDate, 'yyyy-MM-dd')

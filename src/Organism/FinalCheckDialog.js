@@ -56,7 +56,7 @@ function FinalCheckDialog({
 		const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 		await axios({
 			method: 'post',
-			url: 'http://teaching.talk4u.kr/api/classrooms/',
+			url: '/api/classrooms/',
 			data: {
 				name,
 				building,

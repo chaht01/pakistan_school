@@ -87,8 +87,8 @@ function Statbar({ classes, width, adornment, building = -1, classroom = -1, chi
 							method: 'get',
 							url:
 								classroom > 0
-									? `http://teaching.talk4u.kr/api/statistics/buildings/${building}/classrooms/${classroom}/absence-statistics/`
-									: `http://teaching.talk4u.kr/api/statistics/buildings/${building}/absence-statistics/`,
+									? `/api/statistics/buildings/${building}/classrooms/${classroom}/absence-statistics/`
+									: `/api/statistics/buildings/${building}/absence-statistics/`,
 							params: {
 								start_date,
 								end_date

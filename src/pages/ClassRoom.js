@@ -86,7 +86,7 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 			async function fetchClassRoom() {
 				const { data: classrooms } = await axios({
 					method: 'get',
-					url: 'http://teaching.talk4u.kr/api/classrooms/',
+					url: '/api/classrooms/',
 					cancelToken: source.token
 				});
 				setClassrooms(classrooms);
@@ -127,7 +127,7 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 					const { initDays } = schedule;
 					let { data: attendances } = await axios({
 						method: 'get',
-						url: `http://teaching.talk4u.kr/api/classrooms/${id}/attendance/`,
+						url: `/api/classrooms/${id}/attendance/`,
 						cancelToken: source.token,
 						params: {
 							date__gte: format(startDate, 'yyyy-MM-dd'),

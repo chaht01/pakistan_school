@@ -3,7 +3,7 @@ import { authority, getRolePriority } from '../const/auth';
 import axios from 'axios';
 
 const AuthContext = React.createContext();
-
+const local = false;
 function AuthProvider({ children }) {
 	const { UNAUTH, AUTH, ADMIN, INSTRUCTOR, STUDENT } = authority;
 	const savedToken = localStorage.getItem('token');
@@ -12,11 +12,11 @@ function AuthProvider({ children }) {
 		localStorage.getItem('roles') === null
 			? UNAUTH
 			: authority[getRolePriority(localStorage.getItem('roles').split(','))];
-	axios.defaults.headers.common['Authorization'] = `JWT ${savedToken}`;
+	setupDefault(savedToken);
 	const [auth, setAuth] = useState(savedRole);
 	if (savedToken !== null && savedToken.length > 0 && savedUser !== null) {
 		axios
-			.post('http://teaching.talk4u.kr/api/api-token-verify/', {
+			.post('/api/api-token-verify/', {
 				token: savedToken
 			})
 			.then(({ data: { token, user, roles } }) => {
@@ -27,11 +27,16 @@ function AuthProvider({ children }) {
 			});
 	}
 
+	function setupDefault(token) {
+		axios.defaults.headers.common['Authorization'] = `JWT ${token}`;
+		axios.defaults.baseURL = local ? 'http://teaching.talk4u.kr' : 'http://www.newacts.kr:8080';
+	}
+
 	function success(token, user, roles) {
 		localStorage.setItem('token', token);
 		localStorage.setItem('user', JSON.stringify(user));
 		localStorage.setItem('roles', roles);
-		axios.defaults.headers.common['Authorization'] = `JWT ${token}`;
+		setupDefault(token);
 		setAuth(authority[getRolePriority(roles)]);
 	}
 
@@ -45,7 +50,7 @@ function AuthProvider({ children }) {
 	const validateAuth = baseArr => baseArr.reduce((acc, curr) => acc || auth.startsWith(curr), false);
 	const login = async (username, password) => {
 		const { data: { token, user, roles } } = await axios
-			.post('http://teaching.talk4u.kr/api/api-token-auth/', {
+			.post('/api/api-token-auth/', {
 				username,
 				password
 			})

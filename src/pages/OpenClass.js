@@ -100,7 +100,7 @@ function OpenClass({ classes }) {
 
 	useEffect(() => {
 		async function fetchBuildings() {
-			const { data } = await axios({ method: 'get', url: 'http://teaching.talk4u.kr/api/buildings/' });
+			const { data } = await axios({ method: 'get', url: '/api/buildings/' });
 			setBuildings(data);
 			setBuilding(data[0].id);
 		}
@@ -111,12 +111,12 @@ function OpenClass({ classes }) {
 		async function fetchPool() {
 			const { data: instructors } = await axios({
 				method: 'get',
-				url: 'http://teaching.talk4u.kr/api/users/',
+				url: '/api/users/',
 				params: { role: 'Instructor' }
 			});
 			const { data: students } = await axios({
 				method: 'get',
-				url: 'http://teaching.talk4u.kr/api/users/',
+				url: '/api/users/',
 				params: { role: 'Student' }
 			});
 			setInstructorPool(instructors);

@@ -217,7 +217,7 @@ function MakeUpPicker({ student, classroom, value, handleChange, targetDate, rep
 				const [defaultMask, som, eom, sow, eow] = getDefaultMask(now);
 				const { data: attendanceList } = await axios({
 					method: 'get',
-					url: `http://teaching.talk4u.kr/api/classrooms/${classroom}/attendance/`,
+					url: `/api/classrooms/${classroom}/attendance/`,
 					cancelToken: source.token,
 					params: {
 						date__gte: format(sow, 'yyyy-MM-dd'),

@@ -22,7 +22,7 @@ export default function AbsenceDate({ initStat, student, classroom, name, target
 				if (stat !== attendanceValue.stat) {
 					const {
 						data: resolved
-					} = await axios.post(`http://teaching.talk4u.kr/api/classrooms/${classroom}/attendance/`, {
+					} = await axios.post(`/api/classrooms/${classroom}/attendance/`, {
 						student,
 						status: reverseAsyncAttendance[stat],
 						date: format(targetDate, 'yyyy-MM-dd'),
@@ -32,13 +32,13 @@ export default function AbsenceDate({ initStat, student, classroom, name, target
 				}
 			} else {
 				if (stat === none) {
-					await axios.delete(`http://teaching.talk4u.kr/api/classrooms/${classroom}/attendance/${remote.id}`);
+					await axios.delete(`/api/classrooms/${classroom}/attendance/${remote.id}`);
 					setAttendanceValue(new AttStat(stat, { date: null, remote: null }));
 				} else if (stat === late) {
 					const {
 						data: resolved
 					} = await axios.patch(
-						`http://teaching.talk4u.kr/api/classrooms/${classroom}/attendance/${remote.id}/`,
+						`/api/classrooms/${classroom}/attendance/${remote.id}/`,
 						{
 							status: reverseAsyncAttendance[stat],
 							clock_in_time: `${format(date, 'hh:mm')}:00`
@@ -49,7 +49,7 @@ export default function AbsenceDate({ initStat, student, classroom, name, target
 					const {
 						data: resolved
 					} = await axios.patch(
-						`http://teaching.talk4u.kr/api/classrooms/${classroom}/attendance/${remote.id}/`,
+						`/api/classrooms/${classroom}/attendance/${remote.id}/`,
 						{
 							status: reverseAsyncAttendance[stat]
 						}
@@ -59,7 +59,7 @@ export default function AbsenceDate({ initStat, student, classroom, name, target
 					const {
 						data: resolved
 					} = await axios.patch(
-						`http://teaching.talk4u.kr/api/classrooms/${classroom}/attendance/${remote.id}/`,
+						`/api/classrooms/${classroom}/attendance/${remote.id}/`,
 						{
 							status: reverseAsyncAttendance[stat],
 							make_up_for: format(date, 'yyyy-MM-dd')
