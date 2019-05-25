@@ -6,28 +6,26 @@ import AttendBullet from '../Molcules/AttendBullet';
 import { foreground } from '../const/colors';
 import { fontDegrader } from '../utils/breakpoints';
 import { attendance } from '../const/attendance';
-
-const StyledGrid = styled(Grid)`
-	border-radius: 6px;
-	background: ${foreground.red};
-	padding: 0.5em 0 0.5em 1em;
-	font-size: ${fontDegrader(3)}px;
-	font-weight: 800;
-	margin-bottom: 0.6em;
-	color: #fff;
-`;
+import Typography from '@material-ui/core/Typography';
 
 export default function AbsentStudent({ name, absenceStatus }) {
-	console.log(name, absenceStatus);
 	return (
-		<StyledGrid container spacing={0}>
-			<Grid item xs>
+		<div>
+			<Typography noWrap={true} variant={'button'} gutterBottom={true}>
 				{name}
-			</Grid>
-			<Grid item>
+			</Typography>
+			<div>
 				<AttendBullet states={absenceStatus} />
-			</Grid>
-		</StyledGrid>
+			</div>
+		</div>
+		// <StyledGrid container spacing={0}>
+		// 	<Grid item xs>
+		// 		{name}
+		// 	</Grid>
+		// 	<Grid item>
+		// 		<AttendBullet states={absenceStatus} />
+		// 	</Grid>
+		// </StyledGrid>
 	);
 }
 

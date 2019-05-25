@@ -4,7 +4,8 @@ import { BrowserRouter as Router, Route, Redirect } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
 import Dashboard from './pages/Dashboard';
 import Sign from './pages/Sign';
-import Forbidden from './pages/Forbidden';
+import DateController from './Organism/DateController';
+import ClassMoreController from './Organism/ClassMoreController';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import SchoolIcon from '@material-ui/icons/School';
 import GroupIcon from '@material-ui/icons/Group';
@@ -17,6 +18,19 @@ import AppBar from './Organism/AppBar';
 import { makeStyles } from '@material-ui/styles';
 import { authority, defaultRoute } from './const/auth';
 import OpenClass from './pages/OpenClass';
+import { DateConsumer } from './Context/DateContext';
+
+function renameKeys(obj) {
+	if (typeof obj !== 'object') return obj;
+	const keyValues = Object.entries(obj).map(([key, value]) => {
+		if (key === 'minHeight') {
+			return { height: `calc(100% - ${value}px)` };
+		} else {
+			return { [key]: renameKeys(value) };
+		}
+	});
+	return Object.assign({}, ...keyValues);
+}
 
 const styles = theme => {
 	return {
@@ -25,7 +39,8 @@ const styles = theme => {
 			display: 'flex',
 			flexDirection: 'column',
 			height: '100%'
-		}
+		},
+		appBarContent: renameKeys(theme.mixins.toolbar)
 	};
 };
 
@@ -33,7 +48,7 @@ function App({ classes }) {
 	const { attended, none, absence, scheduled, late, makeup } = attendance;
 	const dummyClass = {
 		title: 'Math',
-		lecturer: 'James',
+		lecturers: ['James', 'Hyuntak', 'Khan'],
 		schedule: {
 			initDays: [1, 0, 1, 0, 1, 1, 0],
 			startTime: Date.now(),
@@ -87,17 +102,24 @@ function App({ classes }) {
 			auth: [authority.AUTH],
 			icon: <DashboardIcon />,
 			sidebar: () => <Fragment>Dashboard</Fragment>,
-			main: () => <Dashboard />,
+			sidebarButton: <DateController />,
+			main: () => <DateConsumer>{({ range }) => <Dashboard range={range} />}</DateConsumer>,
 			sidebarIndex: 0
 		},
 		{
-			path: '/classroom',
+			path: '/classroom/:classId',
 			private: true,
-			exact: true,
+			exact: false,
 			auth: [authority.ADMIN, authority.INSTRUCTOR],
 			icon: <SchoolIcon />,
 			sidebar: () => <Fragment>Classroom</Fragment>,
-			main: () => <ClassRoom {...dummyClass} />,
+			sidebarButton: (
+				<Fragment>
+					<DateController />
+					<ClassMoreController />
+				</Fragment>
+			),
+			main: () => <DateConsumer>{({ range }) => <ClassRoom range={range} />}</DateConsumer>,
 			sidebarIndex: 0
 		},
 		{
@@ -148,18 +170,19 @@ function App({ classes }) {
 			<Router>
 				<AppBar routes={routes} />
 				<div className={classes.appBarSpacer} />
-				<div style={{ flex: 1 }}>
+				<div className={classes.appBarContent}>
 					{routes.map(
 						(route, index) =>
 							route.private ? (
 								<PrivateRoute
+									key={index}
 									auth={route.auth}
 									path={route.path}
 									exact={route.exact}
 									component={route.main}
 								/>
 							) : (
-								<Route path={route.path} component={route.main} />
+								<Route key={index} path={route.path} component={route.main} />
 							)
 					)}
 				</div>

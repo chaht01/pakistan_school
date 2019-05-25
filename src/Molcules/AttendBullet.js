@@ -5,34 +5,64 @@ import Record from '@material-ui/icons/FiberManualRecordOutlined';
 import Clear from '@material-ui/icons/Clear';
 import FormGroup from '@material-ui/core/FormGroup';
 import { withStyles } from '@material-ui/styles';
+import { attendance, colorMatcher, attendMask } from '../const/attendance';
 
-import { attendance } from '../const/attendance';
-
-const FormStyles = {
+const styles = {
 	root: {
-		width: 150,
+		width: '100%',
 		flexShrink: 0
 	}
 };
-const StyeldFormGroup = withStyles(FormStyles)(FormGroup);
 
-const attendMask = {
-	[attendance.attended]: Record,
-	[attendance.absence]: Clear,
+// const bulletStyles = theme => ({
+//   root: {
+//     width: theme.spacing(1),
+//     [theme.breakpoints.down('sm')]: {
+//       backgroundColor: theme.palette.secondary.main,
+//     },
+//     [theme.breakpoints.up('md')]: {
+//       backgroundColor: theme.palette.primary.main,
+//     },
+//     [theme.breakpoints.up('lg')]: {
+//       backgroundColor: green[500],
+//     },
+//   },
+// });
 
-	[attendance.none]: Remove,
-	[attendance.scheduled]: StopOutlined
-};
+// const StyeldFormGroup = withStyles(FormStyles)(FormGroup);
 
-export default function AttendBullet({ states }) {
+const AttendBulletItem = withStyles(theme => ({
+	root: {
+		width: `${100 / 7}%`,
+		position: 'relative'
+	},
+	inner: {
+		position: 'relative',
+		width: '100%',
+		paddingTop: '100%'
+	},
+	active: {
+		boxShadow: 'inset 0 0 0 4px black'
+	}
+}))(function({ state, active, classes, mask }) {
 	return (
-		<StyeldFormGroup row={true}>
+		<div
+			className={`${classes.root} ${active ? classes.active : ''}`}
+			style={{ backgroundColor: colorMatcher(state, active ? 1.0 : 0.6, mask) }}
+		>
+			<div className={classes.inner} />
+		</div>
+	);
+});
+
+function AttendBullet({ states, classes, mask = attendMask }) {
+	return (
+		<FormGroup row={true} className={classes.root}>
 			{states.map((state, i) => {
-				const StateComp = attendMask[state];
-				return (
-					<StateComp key={i} fontSize="small" style={{ opacity: i === new Date().getDay() - 1 ? 1 : 0.5 }} />
-				);
+				return <AttendBulletItem state={state} mask={mask} active={i === new Date().getDay()} />;
 			})}
-		</StyeldFormGroup>
+		</FormGroup>
 	);
 }
+
+export default withStyles(styles)(AttendBullet);

@@ -24,7 +24,7 @@ const StructuredBar = withStyles(theme => {
 	};
 })(function({ classes, height, children, ...rest }) {
 	return (
-		<div className={classes.root} style={{ height: `${height}px 0` }} {...rest}>
+		<div className={classes.root} style={{ height: `${height}px` }} {...rest}>
 			{children}
 		</div>
 	);
@@ -45,7 +45,9 @@ const StructuredContent = withStyles(theme => {
 	return (
 		<div className={classes.root}>
 			<div style={{ height: `${height}px` }} />
-			<div className={classes.grow}>{children}</div>
+			<div className={classes.grow} style={{ height: `calc(100% - ${height}px)` }}>
+				{children}
+			</div>
 		</div>
 	);
 });

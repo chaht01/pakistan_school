@@ -13,3 +13,10 @@ export const defaultRoute = {
 	[authority.INSTRUCTOR]: '/classroom',
 	[authority.STUDENT]: '/'
 };
+
+export const getRolePriority = roles => {
+	const priority = ['Admin', 'Instructor', 'Student'];
+	return priority[
+		roles.map(role => priority.indexOf(role)).reduce((acc, curr) => (acc > curr ? curr : acc))
+	].toUpperCase();
+};

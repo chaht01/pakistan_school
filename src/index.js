@@ -6,6 +6,7 @@ import * as serviceWorker from './serviceWorker';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import { foreground } from './const/colors';
 import { AuthProvider } from './Context/AuthContext';
+import { DateProvider } from './Context/DateContext';
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import DateFnsUtils from '@date-io/date-fns';
 
@@ -20,7 +21,9 @@ ReactDOM.render(
 	<MuiPickersUtilsProvider utils={DateFnsUtils}>
 		<MuiThemeProvider theme={theme}>
 			<AuthProvider>
-				<App />
+				<DateProvider>
+					<App />
+				</DateProvider>
 			</AuthProvider>
 		</MuiThemeProvider>
 	</MuiPickersUtilsProvider>,

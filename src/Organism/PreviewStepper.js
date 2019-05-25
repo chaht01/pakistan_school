@@ -6,8 +6,11 @@ import SwipeableViews from 'react-swipeable-views';
 import Button from '@material-ui/core/Button';
 import { autoPlay, bindKeyboard } from 'react-swipeable-views-utils';
 import styled from 'styled-components';
+import withWidth, { isWidthUp, isWidthDown } from '@material-ui/core/withWidth';
 
 import AbsenceCard from '../Organism/AbsenceCard';
+import { withStyles } from '@material-ui/styles';
+import Grid from '@material-ui/core/Grid';
 
 const AutoPlaySwipeableViews = styled(bindKeyboard(autoPlay(SwipeableViews)))`
 	flex: 1;
@@ -17,10 +20,7 @@ const AutoPlaySwipeableViews = styled(bindKeyboard(autoPlay(SwipeableViews)))`
 	}
 `;
 
-const Carousel = styled.div`
-	height: 100%;
-	padding: 0 30px;
-`;
+const Carousel = styled.div`height: 100%;`;
 
 Carousel.Wrapper = styled.div`
 	display: grid;
@@ -29,7 +29,14 @@ Carousel.Wrapper = styled.div`
 	height: 100%;
 `;
 
-export default function PreviewStepper({ classInfo = [] }) {
+const styles = theme => ({
+	carousel: {
+		height: '100%',
+		padding: '0 30px'
+	}
+});
+
+function PreviewStepper({ classes, width, classInfo = [] }) {
 	const [activeStep, setActiveStep] = useState(0);
 	function handleNext() {
 		setActiveStep(activeStep + 1);
@@ -43,7 +50,23 @@ export default function PreviewStepper({ classInfo = [] }) {
 		setActiveStep(step);
 	}
 
-	const maxSteps = classInfo.length;
+	let classPerGroup = 1;
+	if (isWidthDown('xs', width)) {
+		classPerGroup = 1;
+	} else if (isWidthUp('xs', width) && isWidthDown('sm', width)) {
+		classPerGroup = 2;
+	} else {
+		classPerGroup = 3;
+	}
+	const groupedClass = classInfo.reduce((acc, curr) => {
+		if (acc.length === 0 || acc[acc.length - 1].length === classPerGroup) {
+			acc.push([]);
+		}
+		acc[acc.length - 1].push(curr);
+		return acc;
+	}, []);
+
+	const maxSteps = groupedClass.length;
 
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -51,23 +74,24 @@ export default function PreviewStepper({ classInfo = [] }) {
 				index={activeStep}
 				onChangeIndex={handleStepChange}
 				springConfig={{ duration: '.5s', easeFunction: 'ease-in-out', delay: '0s' }}
-				interval={10000}
+				interval={5000000}
 				enableMouseEvents
 			>
-				{classInfo.map((group, index) => (
-					<Carousel key={index}>
-						<Carousel.Wrapper>
-							{group.map((cls, gidx) => (
+				{groupedClass.map((group, index) => (
+					<Grid container className={classes.carousel} spacing={6} key={index}>
+						{group.map((cls, gidx) => (
+							<Grid item xs={12} sm={6} md={4}>
 								<AbsenceCard
-									key={gidx}
-									title={cls.title}
-									lecturer={cls.lecturer}
+									key={cls.id}
+									id={cls.id}
+									title={cls.name}
+									lecturers={cls.instructors}
 									schedule={cls.schedule}
 									absences={cls.absences}
 								/>
-							))}
-						</Carousel.Wrapper>
-					</Carousel>
+							</Grid>
+						))}
+					</Grid>
 				))}
 			</AutoPlaySwipeableViews>
 			<MobileStepper
@@ -88,3 +112,5 @@ export default function PreviewStepper({ classInfo = [] }) {
 		</div>
 	);
 }
+
+export default withWidth()(withStyles(styles)(PreviewStepper));

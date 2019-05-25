@@ -1,79 +1,278 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useState, useEffect } from 'react';
 import { PropTypes } from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
-import styled from 'styled-components';
+import { withStyles, createMuiTheme, responsiveFontSizes } from '@material-ui/core/styles';
+import { withRouter } from 'react-router';
 import Backbone, { StructuredBar, StructuredContent } from '../Molcules/Backbone';
+import { AuthConsumer } from '../Context/AuthContext';
 import AbsenceCounter from '../Organism/AbsenceCounter';
 import HorizonLabelGroup from '../Molcules/HorizonLabelGroup';
 import ScheduleBullet from '../Molcules/ScheduleBullet';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
-import { Calendar } from '../Organism/Calendar';
+import Statbar from '../Organism/Statbar';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import Calendar from '../Organism/Calendar';
 import { base } from '../const/size';
-import { foreground } from '../const/colors';
+import { foreground, fonts } from '../const/colors';
+import { ThemeProvider } from '@material-ui/styles';
+import SettingsIcon from '@material-ui/icons/Settings';
+import IconButton from '@material-ui/core/IconButton';
+import Button from '@material-ui/core/Button';
+import Hidden from '@material-ui/core/Hidden';
+import format from 'date-fns/format';
+import axios from 'axios';
+import { Redirect, Link } from 'react-router-dom';
+import { defaultRoute } from '../const/auth';
+import { match } from 'autosuggest-highlight/match';
+import { attendance, asyncAttendance, AttStat } from '../const/attendance';
+import { differenceInDays, addDays } from 'date-fns';
+
+const defaultTheme = createMuiTheme();
+let theme = createMuiTheme({
+	overrides: {
+		MuiListItemText: {
+			primary: {
+				...responsiveFontSizes(defaultTheme).typography.h4,
+				lineHeight: 1,
+				textTransform: 'capitalize'
+			},
+			secondary: {
+				lineHeight: 1
+			}
+		}
+	}
+});
+theme = responsiveFontSizes(theme);
 
 const styles = theme => ({
-	statBar: {
-		display: 'flex',
-		justifyContent: 'space-between',
-		alignItems: 'flex-end',
-		verticalAlignment: 'bottom',
+	formControl: {
+		margin: theme.spacing(1),
 		width: '100%',
-		height: `${base.subbar}px`,
-		background: `${foreground.lightGreenGray}`,
-		lineHeight: 1.2,
-		padding: '0 60px 24px'
+		[theme.breakpoints.down('sm')]: {
+			maxWidth: 120
+		},
+		[theme.breakpoints.up('sm')]: {
+			maxWidth: 200
+		},
+		[theme.breakpoints.up('md')]: {
+			maxWidth: 200
+		},
+		[theme.breakpoints.up('lg')]: {
+			maxWidth: 200
+		}
+	},
+	settingsIcon: {
+		marginRight: theme.spacing(1)
 	}
 });
 
-function ClassRoom({ classes, title, lecturer, schedule, absences }) {
-	const { initDays, startTime, endTime } = schedule;
+function ClassRoom({ classes, title, lecturers = [], absences, match, range: [startDate, endDate] }) {
+	const { params: { classId }, path } = match;
+	const [classrooms, setClassrooms] = useState([]);
+	const [selectedClassroom, setSelectedClassroom] = useState(Number(classId));
+	const [targetClass, setTargetClass] = useState(null);
+	useEffect(
+		() => {
+			const CancelToken = axios.CancelToken;
+			const source = CancelToken.source();
+			function cleanup() {
+				source.cancel('canceled');
+			}
+			async function fetchClassRoom() {
+				const { data: classrooms } = await axios({
+					method: 'get',
+					url: 'http://teaching.talk4u.kr/api/classrooms/',
+					cancelToken: source.token
+				});
+				setClassrooms(classrooms);
+
+				const targetClass = classrooms.find(classroom => classroom.id === Number(classId));
+				if (!targetClass) {
+					setSelectedClassroom(-1);
+					setTargetClass(null);
+				} else {
+					const targetClass_with_schedule = {
+						...targetClass,
+						schedule: {
+							initDays: (lessons => {
+								let ret = [0, 0, 0, 0, 0, 0, 0];
+								const mask = [
+									'Sunday',
+									'Monday',
+									'Tuesday',
+									'Wednesday',
+									'Thursday',
+									'Friday',
+									'Saturday'
+								];
+								lessons.map(lesson => (ret[mask.indexOf(lesson['day_of_week'])] = 1));
+								return ret;
+							})(targetClass.lessons),
+							startTime: (targetClass.lessons[0] || { start_time: '10:00' }).start_time,
+							endTime: (targetClass.lessons[0] || { end_time: '13:00' }).end_time
+						}
+					};
+
+					const { attended, none, absence, scheduled, makeup, late } = attendance;
+
+					const { id, schedule, ...rest } = targetClass_with_schedule;
+
+					const { initDays } = schedule;
+					let { data: attendances } = await axios({
+						method: 'get',
+						url: `http://teaching.talk4u.kr/api/classrooms/${id}/attendance/`,
+						cancelToken: source.token,
+						params: {
+							date__gte: format(startDate, 'yyyy-MM-dd'),
+							date__lte: format(endDate, 'yyyy-MM-dd')
+						}
+					});
+					let arrangeByStudent = {};
+					attendances.map(attd => {
+						if (!(attd.student in arrangeByStudent)) {
+							arrangeByStudent[attd.student] = {
+								name: attd.student_name,
+								absenceStatus: initDays.map(val => new AttStat(none))
+							};
+						}
+						const offset = differenceInDays(new Date(attd.date), startDate);
+						const currentStatus = attendance[asyncAttendance[attd.status]];
+						const cat_status = [late, makeup].indexOf(currentStatus);
+						arrangeByStudent[attd.student]['absenceStatus'][offset] = new AttStat(currentStatus, {
+							date:
+								cat_status > -1
+									? cat_status === 0
+										? (() => {
+												let d = addDays(startDate, offset);
+												let tokens = attd.clock_in_time.split(':');
+												d.setHours(tokens[0]);
+												d.setMinutes(tokens[1]);
+												return d;
+											})()
+										: new Date(attd.make_up_for)
+									: null,
+							remote: attd
+						});
+					});
+					// if (Object.keys(arrangeByStudent).length !== 0) {
+					console.log(arrangeByStudent);
+					// }
+
+					let absences = Object.entries(arrangeByStudent).map(([id, attendanceStatus]) => ({
+						id,
+						...attendanceStatus
+					}));
+					const processed_targetClass = {
+						id,
+						schedule,
+						absences,
+						...rest
+					};
+					setSelectedClassroom(Number(classId));
+					setTargetClass(processed_targetClass);
+				}
+			}
+			fetchClassRoom();
+			return cleanup;
+		},
+		[startDate, endDate, match]
+	);
+
+	const handleChange = event => {
+		setSelectedClassroom(oldValues => event.target.value);
+	};
+
 	return (
 		<Fragment>
-			<Backbone
-				header={
-					<div className={classes.statBar}>
-						<HorizonLabelGroup big={title} small={lecturer} reverse={true} />
-
-						<Grid container justify={'flex-end'} alignItems={'center'} spacing={0}>
+			<Statbar
+				adornment={
+					<ThemeProvider theme={theme}>
+						<Grid container alignItems="center" spacing={6}>
 							<Grid item>
-								<AbsenceCounter />
+								<FormControl className={classes.formControl}>
+									<Select
+										value={selectedClassroom}
+										autoWidth
+										displayEmpty
+										name="class"
+										onChange={handleChange}
+									>
+										{classrooms.map(b => (
+											<MenuItem
+												key={b.id}
+												value={b.id}
+												component={Link}
+												to={path.replace(':classId', b.id)}
+											>
+												<ListItemText
+													primary={b.name}
+													secondary={`${targetClass
+														? `${targetClass.schedule.startTime} ~ ${targetClass.schedule
+																.endTime}`
+														: `loading...`}`}
+												/>
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
 							</Grid>
-							<Grid item style={{ marginLeft: '2em' }}>
-								<Grid
-									container
-									direction={'column'}
-									alignItems={'center'}
-									justify={'center'}
-									spacing={0}
-								>
-									<ScheduleBullet editable={false} initDays={initDays} />
-									<Typography variant="button" align={'center'}>
-										{`${new Date(startTime).toLocaleTimeString([], {
-											hour: '2-digit',
-											minute: '2-digit',
-											hour12: false
-										})} ~ ${new Date(endTime).toLocaleTimeString([], {
-											hour: '2-digit',
-											minute: '2-digit',
-											hour12: false
-										})}`}
-									</Typography>
+							<Hidden smDown>
+								<Grid item>
+									<Grid container direction="column" alignItems="center">
+										<Grid item>
+											<Typography variant="body">{lecturers[0]}</Typography>
+											{lecturers.length > 1 && (
+												<Fragment>
+													<Typography variant="caption">{`  and  `}</Typography>
+													<IconButton size="small" color="default">
+														<Typography variant="caption">
+															+{lecturers.length - 1}
+														</Typography>
+													</IconButton>
+												</Fragment>
+											)}
+										</Grid>
+										<Grid item>
+											<ThemeProvider
+												theme={createMuiTheme({
+													palette: {
+														primary: {
+															main: fonts.gray
+														}
+													}
+												})}
+											>
+												<Button variant="outlined" size="small" color="primary">
+													<SettingsIcon className={classes.settingsIcon} />
+													Manage
+												</Button>
+											</ThemeProvider>
+										</Grid>
+									</Grid>
 								</Grid>
-							</Grid>
+							</Hidden>
 						</Grid>
-					</div>
+					</ThemeProvider>
 				}
-				content={<Calendar absences={absences} />}
-				space={base.subbar}
-			/>
+			>
+				<Calendar
+					classroom={targetClass ? targetClass.id : -1}
+					absences={targetClass ? targetClass.absences : []}
+					startDate={startDate}
+					endDate={endDate}
+					initDays={targetClass ? targetClass.schedule.initDays : [0, 0, 0, 0, 0, 0]}
+				/>
+			</Statbar>
 		</Fragment>
 	);
 }
 
 ClassRoom.propTypes = {
 	title: PropTypes.string.isRequired,
-	lecturer: PropTypes.string.isRequired,
+	lecturers: PropTypes.string.isRequired,
 	schedule: PropTypes.shape({
 		initDays: PropTypes.array,
 		startTime: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.number]),
@@ -82,4 +281,4 @@ ClassRoom.propTypes = {
 	absences: PropTypes.array.isRequired
 };
 
-export default withStyles(styles)(ClassRoom);
+export default withRouter(withStyles(styles)(ClassRoom));

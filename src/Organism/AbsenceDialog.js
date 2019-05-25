@@ -1,7 +1,6 @@
 import React, { Fragment, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core';
-
 import { ThemeProvider } from '@material-ui/styles';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -14,18 +13,25 @@ import blue from '@material-ui/core/colors/blue';
 import Paper from '@material-ui/core/Paper';
 import Radio from '@material-ui/core/Radio';
 import Tooltip from '@material-ui/core/Tooltip';
-import { attendance, colorMatcher, AttStat } from '../const/attendance';
+import { attendance, colorMatcher, AttStat, asyncAttendance } from '../const/attendance';
 import { foreground } from '../const/colors';
 import AttendCard from '../Molcules/AttendCard';
 import styled from 'styled-components';
 import chroma from 'chroma-js';
+import axios from 'axios';
+import {
+	startOfMonth,
+	endOfMonth,
+	format,
+	isSameDay,
+	startOfWeek,
+	endOfWeek,
+	differenceInDays,
+	addDays,
+	isBefore
+} from 'date-fns';
+import { TimePicker, DatePicker, Day } from '@material-ui/pickers';
 
-import { TimePicker, DatePicker } from '@material-ui/pickers';
-
-const emails = [
-	'username@gmail.comusername@gmail.comusername@gmail.comusername@gmail.comusername@gmail.comusername@gmail.comusername@gmail.comusername@gmail.comusername@gmail.comusername@gmail.comusername@gmail.com',
-	'user02@gmail.com'
-];
 const styles = {
 	avatar: {
 		backgroundColor: blue[100],
@@ -81,8 +87,8 @@ function AttendanceSelection({ value = attendance.attended, handleChange, handle
 	const mask = [attendance.attended, attendance.late, attendance.absence, attendance.makeup, attendance.none];
 	return (
 		<div>
-			{mask.map(state => (
-				<Tooltip title={state.split('/')[1]} placement="top">
+			{mask.map((state, idx) => (
+				<Tooltip title={state.split('/')[1]} key={idx} placement="top">
 					<Radio
 						checked={value === state}
 						onChange={handleChange}
@@ -128,11 +134,11 @@ function PaperComponent({ pos: { x, y, width, height }, attObj, ...other }) {
 	};
 
 	const StyledPaper = withStyles(style)(Paper);
-	const [att, setAtt] = useState(new AttStat(attObj.stat, attObj.data));
+	const [att, setAtt] = useState(new AttStat(attObj.stat, { date: attObj.date, remote: attObj.remote }));
 	return (
 		<Fragment>
 			<FloatedAttendCard status={attObj} elevated={true} x={x} y={y} width={width} height={height}>
-				{att.data && att.dataToString()}
+				{att.dateToString()}
 			</FloatedAttendCard>
 			<StyledPaper {...other} />
 		</Fragment>
@@ -184,30 +190,87 @@ const materialTheme = color =>
 		}
 	});
 
-const getDayMaskRand = (year, month) => {
-	return new Array(31).fill(0).map(_ => {
-		if (Math.random() < 0.5) {
-			return 1;
-		} else {
-			return 0;
-		}
-	});
-};
-function MakeUpPicker({ value, handleChange }) {
-	const now = new Date();
-	// const getDayMaskRand = (year, month) => {
-	// 	return new Array(31).fill(0).map(_ => {
-	// 		if (Math.random() < 0.5) {
-	// 			return 1;
-	// 		} else {
-	// 			return 0;
-	// 		}
-	// 	});
-	// };
-	const [mask, setMask] = useState(getDayMaskRand(now.getYear(), now.getMonth() + 1));
+function getDefaultMask(now) {
+	let som = startOfMonth(now);
+	let eom = endOfMonth(now);
+	let sow = startOfWeek(som);
+	let eow = endOfWeek(eom);
+	let mask = new Array(differenceInDays(eow, sow) + 1).fill(0);
+	mask = mask.map((_, offset) => ({
+		checked: false,
+		date: addDays(sow, offset)
+	}));
+	return [mask, som, eom, sow, eow];
+}
+
+function MakeUpPicker({ student, classroom, value, handleChange, targetDate, reportError }) {
+	const [now, setNow] = useState(targetDate);
+	const [mask, setMask] = useState(getDefaultMask(now)[0]);
+	const CancelToken = axios.CancelToken;
+	const source = CancelToken.source();
+	function cleanup() {
+		source.cancel('canceled');
+	}
+	useEffect(
+		() => {
+			async function getDayMask(now) {
+				const [defaultMask, som, eom, sow, eow] = getDefaultMask(now);
+				const { data: attendanceList } = await axios({
+					method: 'get',
+					url: `http://teaching.talk4u.kr/api/classrooms/${classroom}/attendance/`,
+					cancelToken: source.token,
+					params: {
+						date__gte: format(sow, 'yyyy-MM-dd'),
+						date__lte: format(eow, 'yyyy-MM-dd'),
+						student_id: student
+					}
+				});
+
+				const absences = attendanceList.filter(
+					val =>
+						isBefore(new Date(val.date), targetDate) &&
+						attendance[asyncAttendance[val.status]] === attendance.absence &&
+						(val.makeup_class_date === null || isSameDay(new Date(val.makeup_class_date), targetDate))
+				);
+				console.log(absences);
+				let ret = defaultMask;
+				absences.map(abs => {
+					const offset = differenceInDays(new Date(abs.date), sow);
+					// console.log(offset);
+					ret[offset].checked = true;
+				});
+				setMask(ret);
+			}
+			getDayMask(now);
+			return cleanup;
+		},
+		[now]
+	);
+
+	function renderDay(day, selectedDate, dayInCurrentMonth, dayComponent) {
+		let targetMask = mask.find(m => isSameDay(m.date, day));
+		return (
+			<Day
+				disabled={!targetMask ? true : !targetMask.checked}
+				current={false}
+				hidden={!dayInCurrentMonth}
+				selected={isSameDay(selectedDate, day)}
+			>
+				{day.getDate()}
+			</Day>
+		);
+	}
 
 	function onMonthChange(date) {
-		setMask(getDayMaskRand(date.getYear(), date.getMonth() + 1));
+		setNow(date);
+	}
+
+	function checkValidDate(value) {
+		let targetMask = mask.find(m => isSameDay(m.date, value));
+		if (!targetMask || !targetMask.checked) {
+			return false;
+		}
+		return true;
 	}
 	return (
 		<ThemeProvider theme={materialTheme(colorMatcher(attendance.makeup))}>
@@ -216,53 +279,70 @@ function MakeUpPicker({ value, handleChange }) {
 				label="Make up for"
 				name="data"
 				value={value}
-				onChange={value => handleChange({ target: { name: 'data', value } })}
+				onChange={value => {
+					handleChange({ target: { name: 'date', value } });
+					reportError(!checkValidDate(value));
+				}}
 				showTodayButton={true}
-				autoOk
 				disableFuture={true}
 				onMonthChange={onMonthChange}
-				// shouldDisableDate={day => {
-				// 	if (mask[day.getDate() - 1] === 1) return false;
-				// 	return true;
-				// }}
+				renderDay={renderDay}
+				error={!checkValidDate(value)}
+				helperText={!checkValidDate(value) && `Invalid Absent Date`}
 			/>
 		</ThemeProvider>
 	);
 }
 
-function AttendanceDetail({ attObj, handleChange }) {
-	const { stat, data } = attObj;
-
+function AttendanceDetail({ attObj, student, classroom, handleChange, targetDate, reportError }) {
+	const { stat, date, remote } = attObj;
+	const [selectedTime, handleTime] = useState(date);
+	const onClose = () => {
+		handleChange({ target: { name: 'date', value: selectedTime } });
+	};
 	if (stat === attendance.late) {
 		return (
 			<ThemeProvider theme={materialTheme(colorMatcher(attendance.late))}>
 				<TimePicker
 					margin="normal"
 					label="Late at"
-					value={data}
-					name="data"
-					onChange={value => handleChange({ target: { name: 'data', value } })}
+					value={selectedTime}
+					name="date"
+					onChange={handleTime}
+					onClose={onClose}
 				/>
 			</ThemeProvider>
 		);
 	} else if (stat === attendance.makeup) {
-		return <MakeUpPicker value={data} handleChange={handleChange} />;
+		return (
+			<MakeUpPicker
+				value={date}
+				targetDate={targetDate}
+				classroom={classroom}
+				student={student}
+				handleChange={handleChange}
+				reportError={reportError}
+			/>
+		);
 	} else {
 		return null;
 	}
 }
 
-function SimpleDialog({ name, targetDate, onClose, attendanceValue, classes, pos, ...other }) {
+function SimpleDialog({ name, student, classroom, targetDate, onClose, attendanceValue, classes, pos, ...other }) {
 	const [attObj, updateAttObj] = useState({
 		stat: attendanceValue.stat,
-		data: attendanceValue.data || new Date()
+		date: attendanceValue.date,
+		remote: attendanceValue.remote
 	});
 
+	const [detailError, setDetailError] = useState(false);
+
 	function onEnter() {
-		console.log('????');
 		updateAttObj({
 			stat: attendanceValue.stat,
-			data: attendanceValue.data || new Date()
+			date: attendanceValue.date,
+			remote: attendanceValue.remote
 		});
 	}
 
@@ -278,12 +358,13 @@ function SimpleDialog({ name, targetDate, onClose, attendanceValue, classes, pos
 			handleCancel();
 		} else {
 			console.log(attObj);
-			onClose(new AttStat(attObj.stat, attObj.data));
+			onClose(new AttStat(attObj.stat, { date: attObj.date, remote: attObj.remote }));
 		}
 	}
 
 	function handleCancel() {
-		onClose(attendanceValue);
+		onClose();
+		setDetailError(false); //reinitialize
 	}
 
 	const StyledAttendanceSelection = withStyles(radioStyle)(AttendanceSelection);
@@ -305,13 +386,20 @@ function SimpleDialog({ name, targetDate, onClose, attendanceValue, classes, pos
 					})}`}
 				</DialogContentText>
 				<StyledAttendanceSelection value={attObj.stat} handleChange={handleAttendanceChange} />
-				<AttendanceDetail attObj={attObj} handleChange={handleAttendanceChange} />
+				<AttendanceDetail
+					attObj={attObj}
+					handleChange={handleAttendanceChange}
+					student={student}
+					classroom={classroom}
+					targetDate={targetDate}
+					reportError={setDetailError}
+				/>
 			</DialogContent>
 			<DialogActions>
 				<Button onClick={handleCancel} color="default">
 					Cancel
 				</Button>
-				<Button onClick={handleClose} color="primary" autoFocus>
+				<Button onClick={handleClose} color="primary" autoFocus disabled={detailError}>
 					Confirm
 				</Button>
 			</DialogActions>

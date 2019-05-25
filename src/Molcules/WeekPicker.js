@@ -1,35 +1,35 @@
+import React, { Fragment, PureComponent, useState } from 'react';
 import clsx from 'clsx';
-import DateFnsUtils from '@date-io/date-fns';
 import format from 'date-fns/format';
 import isValid from 'date-fns/isValid';
 import isSameDay from 'date-fns/isSameDay';
 import endOfWeek from 'date-fns/endOfWeek';
-import React, { PureComponent } from 'react';
 import startOfWeek from 'date-fns/startOfWeek';
 import isWithinInterval from 'date-fns/isWithinInterval';
+import withWidth, { isWidthUp } from '@material-ui/core/withWidth';
 // @ts-ignore this guy required only on the docs site to work with dynamic date library
 // import { cloneCrossUtils } from 'utils/helpers';
-import { DatePicker } from '@material-ui/pickers';
+import { DatePicker, Calendar } from '@material-ui/pickers';
 import { createStyles } from '@material-ui/styles';
 import { IconButton, withStyles } from '@material-ui/core';
+import DateRangeIcon from '@material-ui/icons/DateRange';
 
-class CustomElements extends PureComponent {
-	state = {
-		selectedDate: new Date()
+function CustomElements({ classes, width, selectedDate, handleSelectedDate, ...rest }) {
+	const [open, setOpen] = useState(false);
+
+	const toggleOpen = () => setOpen(!open);
+
+	const handleWeekChange = date => {
+		handleSelectedDate(startOfWeek(date));
 	};
 
-	handleWeekChange = date => {
-		this.setState({ selectedDate: startOfWeek(date) });
-	};
-
-	formatWeekSelectLabel = (date, invalidLabel) => {
+	const formatWeekSelectLabel = (date, invalidLabel) => {
 		let dateClone = date;
 
 		return dateClone && isValid(dateClone) ? `${format(startOfWeek(dateClone), 'MMM do')}` : invalidLabel;
 	};
 
-	renderWrappedWeekDay = (date, selectedDate, dayInCurrentMonth) => {
-		const { classes } = this.props;
+	const renderWrappedWeekDay = (date, selectedDate, dayInCurrentMonth) => {
 		let dateClone = date;
 		let selectedDateClone = selectedDate;
 
@@ -60,22 +60,44 @@ class CustomElements extends PureComponent {
 		);
 	};
 
-	render() {
-		const { selectedDate } = this.state;
-
-		return (
+	return (
+		<Fragment>
 			<DatePicker
 				value={selectedDate}
-				onChange={this.handleWeekChange}
-				renderDay={this.renderWrappedWeekDay}
-				labelFunc={this.formatWeekSelectLabel}
-				{...this.props}
+				onChange={handleWeekChange}
+				renderDay={renderWrappedWeekDay}
+				labelFunc={formatWeekSelectLabel}
+				autoOk
+				disableFuture
+				open={open}
+				component="span"
+				InputProps={{
+					className: classes.adjustedInput,
+					disableUnderline: true,
+					endAdornment: (
+						<IconButton aria-label="Pick Week" onClick={toggleOpen}>
+							<DateRangeIcon />
+						</IconButton>
+					)
+				}}
+				onOpen={() => setOpen(true)}
+				onClose={() => setOpen(false)}
+				variant={isWidthUp('sm', width) ? 'inline' : 'dialog'}
+				{...rest}
 			/>
-		);
-	}
+		</Fragment>
+	);
 }
 
 const styles = createStyles(theme => ({
+	adjustedInput: {
+		maxWidth: '120px',
+		[theme.breakpoints.down('sm')]: {
+			'&>input': {
+				width: 0
+			}
+		}
+	},
 	dayWrapper: {
 		position: 'relative'
 	},
@@ -117,4 +139,4 @@ const styles = createStyles(theme => ({
 	}
 }));
 
-export default withStyles(styles)(CustomElements);
+export default withWidth()(withStyles(styles)(CustomElements));

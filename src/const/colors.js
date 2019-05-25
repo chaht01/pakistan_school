@@ -29,5 +29,7 @@ export function hover(color) {
 
 export const fonts = {
 	darkGray: '#494949',
-	black: '#333333'
+	gray: '#aaaaaa',
+	black: '#333333',
+	white: '#ffffff'
 };

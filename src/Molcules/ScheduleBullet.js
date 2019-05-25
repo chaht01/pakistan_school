@@ -9,7 +9,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import FormGroup from '@material-ui/core/FormGroup';
 import { withStyles } from '@material-ui/styles';
 import { foreground } from '../const/colors';
-import FormLabel from '@material-ui/core/FormLabel';
+import { SizeMe } from 'react-sizeme';
 
 const Checkstyles = {
 	root: {
@@ -46,18 +46,24 @@ export function ScheduleBulletControl({ editable = false, initDays = [0, 0, 0, 0
 		);
 	}
 	return (
-		<StyeldFormGroup row={true}>
-			{weekdays.map((w, i) => (
-				<Tooltip key={w} title={w} placement="bottom">
-					<StyledCheckbox
-						icon={<Stop fontSize="large" />}
-						checkedIcon={<Stop fontSize="large" />}
-						checked={checked[i]}
-						onChange={e => changeValue(e, i)}
-					/>
-				</Tooltip>
-			))}
-		</StyeldFormGroup>
+		<SizeMe>
+			{({ size }) => {
+				return (
+					<StyeldFormGroup row={true}>
+						{weekdays.map((w, i) => (
+							<Tooltip key={w} title={w} placement="bottom">
+								<StyledCheckbox
+									icon={<Stop fontSize={size.width >= 245 ? 'large' : 'default'} />}
+									checkedIcon={<Stop fontSize={size.width >= 245 ? 'large' : 'default'} />}
+									checked={checked[i]}
+									onChange={e => changeValue(e, i)}
+								/>
+							</Tooltip>
+						))}
+					</StyeldFormGroup>
+				);
+			}}
+		</SizeMe>
 	);
 }
 

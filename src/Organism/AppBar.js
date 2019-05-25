@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 import { AuthConsumer } from '../Context/AuthContext';
@@ -8,14 +8,24 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import Sidebar from '../Organism/Sidebar';
-import DateController from './DateController';
 import { authority } from '../const/auth';
+import Grid from '@material-ui/core/Grid';
 
-const styles = {
+const styles = theme => ({
 	grow: {
 		flexGrow: 1
+	},
+	appBarButtonGroup: {
+		width: 'auto',
+		'&>*': {
+			marginLeft: theme.spacing(2),
+
+			[theme.breakpoints.down('sm')]: {
+				marginLeft: theme.spacing(1)
+			}
+		}
 	}
-};
+});
 
 function ButtonAppBar(props) {
 	const { classes, routes } = props;
@@ -25,10 +35,24 @@ function ButtonAppBar(props) {
 				<Sidebar routes={routes} />
 				<Typography variant="h6" color="inherit" className={classes.grow}>
 					{routes.map((route, index) => (
-						<Route path={route.path} exact={route.exact} component={route.sidebar} />
+						<Route key={index} path={route.path} exact={route.exact} component={route.sidebar} />
 					))}
 				</Typography>
-				<DateController />
+				{routes.map(
+					(route, index) =>
+						route.sidebarButton && (
+							<Route
+								key={index}
+								path={route.path}
+								exact={route.exact}
+								component={() => (
+									<Grid container alignItems="center" className={classes.appBarButtonGroup}>
+										{route.sidebarButton}
+									</Grid>
+								)}
+							/>
+						)
+				)}
 				<AuthConsumer>
 					{({ authState }) =>
 						authState === authority.UNAUTH && (
