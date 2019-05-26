@@ -97,8 +97,8 @@ function Dashboard({ classes, range: [startDate, endDate] }) {
 							lessons.map(lesson => (ret[mask.indexOf(lesson['day_of_week'])] = 1));
 							return ret;
 						})(info.lessons),
-						startTime: (info.lessons[0] || { start_time: '10:00' }).start_time,
-						endTime: (info.lessons[0] || { end_time: '13:00' }).end_time
+						startTime: info.lessons[0].start_time.slice(0, -3),
+						endTime: info.lessons[0].end_time.slice(0, -3)
 					}
 				}));
 
