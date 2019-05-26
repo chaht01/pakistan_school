@@ -203,8 +203,11 @@ function getDefaultMask(now) {
 	return [mask, som, eom, sow, eow];
 }
 
-function MakeUpPicker({ student, classroom, value, handleChange, targetDate, reportError }) {
+function MakeUpPicker({ attObj, student, classroom, handleChange, targetDate, reportError, detailError }) {
+	const { stat, date, remote } = attObj;
+	const [selectedDate, handleDate] = useState(date || new Date());
 	const [now, setNow] = useState(targetDate);
+	const [err, setErr] = useState(detailError);
 	const [mask, setMask] = useState(getDefaultMask(now)[0]);
 	const CancelToken = axios.CancelToken;
 	const source = CancelToken.source();
@@ -236,7 +239,6 @@ function MakeUpPicker({ student, classroom, value, handleChange, targetDate, rep
 				let ret = defaultMask;
 				absences.map(abs => {
 					const offset = differenceInDays(new Date(abs.date), sow);
-					// console.log(offset);
 					ret[offset].checked = true;
 				});
 				setMask(ret);
@@ -272,61 +274,52 @@ function MakeUpPicker({ student, classroom, value, handleChange, targetDate, rep
 		}
 		return true;
 	}
+	const onAccept = () => {
+		handleChange({ target: { name: 'date', value: selectedDate } });
+		const error = !checkValidDate(selectedDate);
+		setErr(error);
+		reportError(error);
+	};
+	const onChange = value => {
+		handleDate(value);
+	};
 	return (
 		<ThemeProvider theme={materialTheme(colorMatcher(attendance.makeup))}>
 			<DatePicker
 				margin="normal"
 				label="Make up for"
 				name="data"
-				value={value}
-				onChange={value => {
-					handleChange({ target: { name: 'date', value } });
-					reportError(!checkValidDate(value));
-				}}
-				showTodayButton={true}
-				disableFuture={true}
+				value={selectedDate}
+				onChange={onChange}
+				onAccept={onAccept}
+				onClose={() => reportError(err)}
 				onMonthChange={onMonthChange}
 				renderDay={renderDay}
-				error={!checkValidDate(value)}
-				helperText={!checkValidDate(value) && `Invalid Absent Date`}
+				error={err}
+				helperText={err && `Invalid Absent Date`}
 			/>
 		</ThemeProvider>
 	);
 }
 
-function AttendanceDetail({ attObj, student, classroom, handleChange, targetDate, reportError }) {
+function LatePicker({ attObj, student, classroom, handleChange, targetDate, reportError }) {
 	const { stat, date, remote } = attObj;
-	const [selectedTime, handleTime] = useState(date);
-	const onClose = () => {
+	const [selectedTime, handleTime] = useState(date || new Date());
+	const onAccept = () => {
 		handleChange({ target: { name: 'date', value: selectedTime } });
 	};
-	if (stat === attendance.late) {
-		return (
-			<ThemeProvider theme={materialTheme(colorMatcher(attendance.late))}>
-				<TimePicker
-					margin="normal"
-					label="Late at"
-					value={selectedTime}
-					name="date"
-					onChange={handleTime}
-					onClose={onClose}
-				/>
-			</ThemeProvider>
-		);
-	} else if (stat === attendance.makeup) {
-		return (
-			<MakeUpPicker
-				value={date}
-				targetDate={targetDate}
-				classroom={classroom}
-				student={student}
-				handleChange={handleChange}
-				reportError={reportError}
+	return (
+		<ThemeProvider theme={materialTheme(colorMatcher(attendance.late))}>
+			<TimePicker
+				margin="normal"
+				label="Late at"
+				value={selectedTime}
+				name="date"
+				onChange={handleTime}
+				onAccept={onAccept}
 			/>
-		);
-	} else {
-		return null;
-	}
+		</ThemeProvider>
+	);
 }
 
 function SimpleDialog({ name, student, classroom, targetDate, onClose, attendanceValue, classes, pos, ...other }) {
@@ -336,7 +329,21 @@ function SimpleDialog({ name, student, classroom, targetDate, onClose, attendanc
 		remote: attendanceValue.remote
 	});
 
-	const [detailError, setDetailError] = useState(false);
+	const [detailError, setDetailError] = useState({
+		[attendance.attended]: false,
+		[attendance.late]: false,
+		[attendance.absence]: false,
+		[attendance.makeup]: false
+	});
+
+	function handleDetailError(stat) {
+		return function(value) {
+			setDetailError({
+				...detailError,
+				[stat]: value
+			});
+		};
+	}
 
 	function onEnter() {
 		updateAttObj({
@@ -357,7 +364,6 @@ function SimpleDialog({ name, student, classroom, targetDate, onClose, attendanc
 		if (reason === 'escapeKeyDown') {
 			handleCancel();
 		} else {
-			console.log(attObj);
 			onClose(new AttStat(attObj.stat, { date: attObj.date, remote: attObj.remote }));
 		}
 	}
@@ -386,20 +392,33 @@ function SimpleDialog({ name, student, classroom, targetDate, onClose, attendanc
 					})}`}
 				</DialogContentText>
 				<StyledAttendanceSelection value={attObj.stat} handleChange={handleAttendanceChange} />
-				<AttendanceDetail
-					attObj={attObj}
-					handleChange={handleAttendanceChange}
-					student={student}
-					classroom={classroom}
-					targetDate={targetDate}
-					reportError={setDetailError}
-				/>
+				{attObj.stat === attendance.late && (
+					<LatePicker
+						attObj={attObj}
+						handleChange={handleAttendanceChange}
+						student={student}
+						classroom={classroom}
+						targetDate={targetDate}
+						reportError={handleDetailError(attObj.stat)}
+					/>
+				)}
+				{attObj.stat === attendance.makeup && (
+					<MakeUpPicker
+						attObj={attObj}
+						handleChange={handleAttendanceChange}
+						student={student}
+						classroom={classroom}
+						targetDate={targetDate}
+						reportError={handleDetailError(attObj.stat)}
+						detailError={detailError[attObj.stat]}
+					/>
+				)}
 			</DialogContent>
 			<DialogActions>
 				<Button onClick={handleCancel} color="default">
 					Cancel
 				</Button>
-				<Button onClick={handleClose} color="primary" autoFocus disabled={detailError}>
+				<Button onClick={handleClose} color="primary" autoFocus disabled={detailError[attObj.stat]}>
 					Confirm
 				</Button>
 			</DialogActions>

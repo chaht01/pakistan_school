@@ -14,60 +14,73 @@ export default function AbsenceDate({ initStat, student, classroom, name, target
 		setPos(e.target.getBoundingClientRect());
 		setOpen(true);
 	}
+
+	async function createOrUpdateAttd(stat, date, remote = null) {
+		let data = {};
+		if (remote === null) {
+			//create
+			data = {
+				...date,
+				student,
+				status: reverseAsyncAttendance[stat],
+				date: format(targetDate, 'yyyy-MM-dd'),
+				classroom: classroom
+			};
+		}
+		if (stat === none) {
+			if (remote !== null) await axios.delete(`/api/classrooms/${classroom}/attendance/${remote.id}`);
+			setAttendanceValue(new AttStat(stat, { date: null, remote: null }));
+		} else if (stat === attended) {
+			const { data: resolved } = await axios({
+				method: remote ? 'patch' : 'post',
+				url: `/api/classrooms/${classroom}/attendance${remote !== null ? `/${remote.id}` : ``}/`,
+				data: {
+					...data,
+					status: reverseAsyncAttendance[stat]
+				}
+			});
+			setAttendanceValue(new AttStat(stat, { date: null, remote: resolved }));
+		} else if (stat === late) {
+			const { data: resolved } = await axios({
+				method: remote ? 'patch' : 'post',
+				url: `/api/classrooms/${classroom}/attendance${remote !== null ? `/${remote.id}` : ``}/`,
+				data: {
+					...data,
+					status: reverseAsyncAttendance[stat],
+
+					clock_in_time: `${format(date, 'hh:mm')}:00`
+				}
+			});
+			setAttendanceValue(new AttStat(stat, { date, remote: resolved }));
+		} else if (stat === absence) {
+			const { data: resolved } = await axios({
+				method: remote ? 'patch' : 'post',
+				url: `/api/classrooms/${classroom}/attendance${remote !== null ? `/${remote.id}` : ``}/`,
+				data: {
+					...data,
+					status: reverseAsyncAttendance[stat]
+				}
+			});
+			setAttendanceValue(new AttStat(stat, { date, remote: resolved }));
+		} else if (stat === makeup) {
+			const { data: resolved } = await axios({
+				method: remote ? 'patch' : 'post',
+				url: `/api/classrooms/${classroom}/attendance${remote !== null ? `/${remote.id}` : ``}/`,
+				data: {
+					...data,
+					status: reverseAsyncAttendance[stat],
+					make_up_for: format(date, 'yyyy-MM-dd')
+				}
+			});
+			setAttendanceValue(new AttStat(stat, { date, remote: resolved }));
+		}
+	}
+
 	async function handleClose(value) {
 		if (value) {
 			//update only if value is given
 			const { stat, date, remote } = value;
-			if (remote === null) {
-				if (stat !== attendanceValue.stat) {
-					const {
-						data: resolved
-					} = await axios.post(`/api/classrooms/${classroom}/attendance/`, {
-						student,
-						status: reverseAsyncAttendance[stat],
-						date: format(targetDate, 'yyyy-MM-dd'),
-						classroom: classroom
-					});
-					setAttendanceValue(new AttStat(stat, { date, remote: resolved }));
-				}
-			} else {
-				if (stat === none) {
-					await axios.delete(`/api/classrooms/${classroom}/attendance/${remote.id}`);
-					setAttendanceValue(new AttStat(stat, { date: null, remote: null }));
-				} else if (stat === late) {
-					const {
-						data: resolved
-					} = await axios.patch(
-						`/api/classrooms/${classroom}/attendance/${remote.id}/`,
-						{
-							status: reverseAsyncAttendance[stat],
-							clock_in_time: `${format(date, 'hh:mm')}:00`
-						}
-					);
-					setAttendanceValue(new AttStat(stat, { date, remote: resolved }));
-				} else if (stat === absence) {
-					const {
-						data: resolved
-					} = await axios.patch(
-						`/api/classrooms/${classroom}/attendance/${remote.id}/`,
-						{
-							status: reverseAsyncAttendance[stat]
-						}
-					);
-					setAttendanceValue(new AttStat(stat, { date, remote: resolved }));
-				} else if (stat === makeup) {
-					const {
-						data: resolved
-					} = await axios.patch(
-						`/api/classrooms/${classroom}/attendance/${remote.id}/`,
-						{
-							status: reverseAsyncAttendance[stat],
-							make_up_for: format(date, 'yyyy-MM-dd')
-						}
-					);
-					setAttendanceValue(new AttStat(stat, { date, remote: resolved }));
-				}
-			}
+			createOrUpdateAttd(stat, date, remote);
 		}
 		console.log(attendanceValue);
 		setOpen(false);

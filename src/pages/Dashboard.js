@@ -77,7 +77,7 @@ function Dashboard({ classes, range: [startDate, endDate] }) {
 
 	useEffect(
 		() => {
-			var timerID = setInterval(() => tick(), 3000);
+			var timerID = setInterval(() => tick(), 60000);
 			async function fetchClassRoom() {
 				const { data: classrooms } = await axios({
 					method: 'get',
@@ -97,8 +97,8 @@ function Dashboard({ classes, range: [startDate, endDate] }) {
 							lessons.map(lesson => (ret[mask.indexOf(lesson['day_of_week'])] = 1));
 							return ret;
 						})(info.lessons),
-						startTime: (info.lessons[0] || { start_time: '10:00' }).start_time,
-						endTime: (info.lessons[0] || { end_time: '13:00' }).end_time
+						startTime: info.lessons[0].start_time.slice(0, -3),
+						endTime: info.lessons[0].end_time.slice(0, -3)
 					}
 				}));
 
@@ -151,7 +151,7 @@ function Dashboard({ classes, range: [startDate, endDate] }) {
 				);
 
 				console.log(processed);
-				setClassInfo(processed);
+				setClassInfo(processed.filter(({ absences }) => absences.length > 0));
 			}
 			fetchClassRoom();
 			return function cleanup() {
