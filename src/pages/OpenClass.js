@@ -1,4 +1,5 @@
 import React, { useState, Fragment, useEffect } from 'react';
+import { withRouter } from 'react-router';
 import withStyles from '@material-ui/core/styles/withStyles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Grid from '@material-ui/core/Grid';
@@ -87,7 +88,7 @@ const styles = theme => ({
 	// scheduleBulletControl: theme.Input.FormControl
 });
 
-function OpenClass({ classes }) {
+function OpenClass({ classes, history }) {
 	const [instructorPool, setInstructorPool] = useState([]);
 	const [studentPool, setStudentPool] = useState([]);
 	const [instructorChips, setInstructorChips] = useState({ value: [], error: false, dirty: false });
@@ -256,7 +257,7 @@ function OpenClass({ classes }) {
 				</Paper>
 				<Grid container className={classes.demo} justify="center" spacing={6}>
 					<Grid item>
-						<Button fullWidth color="default" className={classes.submit}>
+						<Button fullWidth color="default" className={classes.submit} onClick={() => history.goBack()}>
 							Cancel
 						</Button>
 					</Grid>
@@ -321,4 +322,4 @@ function OpenClass({ classes }) {
 	);
 }
 
-export default withStyles(styles)(OpenClass);
+export default withRouter(withStyles(styles)(OpenClass));

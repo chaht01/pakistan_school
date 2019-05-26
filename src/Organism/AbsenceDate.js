@@ -80,15 +80,7 @@ export default function AbsenceDate({ initStat, student, classroom, name, target
 		if (value) {
 			//update only if value is given
 			const { stat, date, remote } = value;
-			console.log(value);
 			createOrUpdateAttd(stat, date, remote);
-			// if (remote === null) {
-			// 	if (stat !== attendanceValue.stat) {
-			// 		createOrUpdateAttd(stat, date, remote);
-			// 	}
-			// } else {
-			// 	createOrUpdateAttd(stat, date, remote);
-			// }
 		}
 		console.log(attendanceValue);
 		setOpen(false);

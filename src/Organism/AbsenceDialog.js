@@ -282,8 +282,6 @@ function MakeUpPicker({ attObj, student, classroom, handleChange, targetDate, re
 	};
 	const onChange = value => {
 		handleDate(value);
-		// const error = !checkValidDate(selectedDate);
-		// reportError(error);
 	};
 	return (
 		<ThemeProvider theme={materialTheme(colorMatcher(attendance.makeup))}>

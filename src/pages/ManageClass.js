@@ -316,7 +316,7 @@ function ManageClass({ classes, match, history }) {
 				</Paper>
 				<Grid container className={classes.demo} justify="center" spacing={6}>
 					<Grid item>
-						<Button fullWidth color="default" className={classes.submit}>
+						<Button fullWidth color="default" className={classes.submit} onClick={() => history.goBack()}>
 							Cancel
 						</Button>
 					</Grid>
