@@ -77,7 +77,7 @@ function Dashboard({ classes, range: [startDate, endDate] }) {
 
 	useEffect(
 		() => {
-			var timerID = setInterval(() => tick(), 3000);
+			var timerID = setInterval(() => tick(), 60000);
 			async function fetchClassRoom() {
 				const { data: classrooms } = await axios({
 					method: 'get',
@@ -151,7 +151,7 @@ function Dashboard({ classes, range: [startDate, endDate] }) {
 				);
 
 				console.log(processed);
-				setClassInfo(processed);
+				setClassInfo(processed.filter(({ absences }) => absences.length > 0));
 			}
 			fetchClassRoom();
 			return function cleanup() {

@@ -79,7 +79,7 @@ function Statbar({ classes, width, adornment, building = -1, classroom = -1, chi
 
 	useEffect(
 		() => {
-			var timerID = setInterval(() => tick(), 3000);
+			var timerID = setInterval(() => tick(), 60000);
 			async function getStatistics(start_date, end_date, setStat) {
 				if (building > 0 || classroom > 0) {
 					try {
