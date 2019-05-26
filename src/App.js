@@ -1,7 +1,7 @@
 import React, { Fragment, useState } from 'react';
 import { AuthConsumer } from './Context/AuthContext';
 import { BrowserRouter as Router, Route, Redirect } from 'react-router-dom';
-import { withStyles } from '@material-ui/core/styles';
+import { withStyles, StylesProvider, createGenerateClassName } from '@material-ui/styles';
 import Dashboard from './pages/Dashboard';
 import Sign from './pages/Sign';
 import DateController from './Organism/DateController';
