@@ -8,8 +8,12 @@ import { foreground } from './const/colors';
 import { AuthProvider } from './Context/AuthContext';
 import { DateProvider } from './Context/DateContext';
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
+import { withStyles, StylesProvider, createGenerateClassName } from '@material-ui/styles';
 import DateFnsUtils from '@date-io/date-fns';
-
+const generateClassName = createGenerateClassName({
+	productionPrefix: 'mt'
+	// seed: 'mt'
+});
 const theme = createMuiTheme({
 	palette: {
 		primary: { main: foreground.cobalt },
@@ -18,15 +22,17 @@ const theme = createMuiTheme({
 });
 
 ReactDOM.render(
-	<MuiPickersUtilsProvider utils={DateFnsUtils}>
-		<MuiThemeProvider theme={theme}>
-			<AuthProvider>
-				<DateProvider>
-					<App />
-				</DateProvider>
-			</AuthProvider>
-		</MuiThemeProvider>
-	</MuiPickersUtilsProvider>,
+	<StylesProvider generateClassName={generateClassName}>
+		<MuiPickersUtilsProvider utils={DateFnsUtils}>
+			<MuiThemeProvider theme={theme}>
+				<AuthProvider>
+					<DateProvider>
+						<App />
+					</DateProvider>
+				</AuthProvider>
+			</MuiThemeProvider>
+		</MuiPickersUtilsProvider>
+	</StylesProvider>,
 	document.getElementById('root')
 );
 

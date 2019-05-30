@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { createMuiTheme, responsiveFontSizes, withStyles } from '@material-ui/core/styles';
 import MaterialTable from 'material-table';
 import Snackbar from '@material-ui/core/Snackbar';
 import Slide from '@material-ui/core/Slide';
@@ -17,7 +16,7 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import SearchIcon from '@material-ui/icons/Search';
 import ClearIcon from '@material-ui/icons/Clear';
 import axios from 'axios';
-import { ThemeProvider } from '@material-ui/styles';
+import { withStyles } from '@material-ui/styles';
 import { foreground, fonts } from '../const/colors';
 import UserClassrooms from '../Organism/UserClassrooms';
 
@@ -53,18 +52,6 @@ const styles = theme => ({
 			width: 900,
 			marginLeft: 'auto',
 			marginRight: 'auto'
-		}
-	}
-});
-
-const defaultTheme = createMuiTheme();
-const theme = createMuiTheme({
-	overrides: {
-		MuiToolbar: {
-			root: {
-				position: 'sticky',
-				...renameKeys(defaultTheme.mixins.toolbar)
-			}
 		}
 	}
 });
@@ -119,101 +106,99 @@ function Users({ classes }) {
 	return (
 		<div className={classes.root}>
 			<main className={classes.main}>
-				<ThemeProvider theme={theme}>
-					<MaterialTable
-						title="Users"
-						columns={state.columns}
-						data={state.data}
-						icons={{
-							Add: AddIcon,
-							Delete: DeleteOutlineIcon,
-							Edit: EditIcon,
-							Check: DoneIcon,
-							Filter: FilterListIcon,
-							FirstPage: FirstPageIcon,
-							LastPage: LastPageIcon,
-							PreviousPage: ChevronLeftIcon,
-							NextPage: ChevronRightIcon,
-							Search: SearchIcon,
-							ResetSearch: ClearIcon,
-							Clear: ClearIcon,
-							DetailPanel: ChevronRightIcon
-						}}
-						detailPanel={rowData => <UserClassrooms classrooms={rowData.classrooms} />}
-						options={{
-							actionsColumnIndex: -1
-						}}
-						onRowClick={(event, rowData, togglePanel) => togglePanel()}
-						editable={{
-							onRowAdd: newData =>
-								new Promise((resolve, reject) => {
-									axios({
-										method: 'post',
-										url: '/api/users/',
-										data: {
-											username: newData.username,
-											profile: {
-												name: newData['profile.name'],
-												gender: newData['profile.gender']
-											}
+				<MaterialTable
+					title="Users"
+					columns={state.columns}
+					data={state.data}
+					icons={{
+						Add: AddIcon,
+						Delete: DeleteOutlineIcon,
+						Edit: EditIcon,
+						Check: DoneIcon,
+						Filter: FilterListIcon,
+						FirstPage: FirstPageIcon,
+						LastPage: LastPageIcon,
+						PreviousPage: ChevronLeftIcon,
+						NextPage: ChevronRightIcon,
+						Search: SearchIcon,
+						ResetSearch: ClearIcon,
+						Clear: ClearIcon,
+						DetailPanel: ChevronRightIcon
+					}}
+					// detailPanel={rowData => <UserClassrooms classrooms={rowData.classrooms} />}
+					// options={{
+					// 	actionsColumnIndex: -1
+					// }}
+					// onRowClick={(event, rowData, togglePanel) => togglePanel()}
+					editable={{
+						onRowAdd: newData =>
+							new Promise((resolve, reject) => {
+								axios({
+									method: 'post',
+									url: '/api/users/',
+									data: {
+										username: newData.username,
+										profile: {
+											name: newData['profile.name'],
+											gender: newData['profile.gender']
 										}
-									})
-										.then(({ data: resolved }) => {
-											resolve(newData);
-											const data = state.data;
-											data.push(newData);
-											setState({ ...state, data });
-										})
-										.catch(handleCatch.bind(this, reject));
-								}),
-							onRowUpdate: (newData, oldData) =>
-								new Promise((resolve, reject) => {
-									axios({
-										method: 'patch',
-										url: `/api/users/${newData.id}/`,
-										data: {
-											profile: {
-												name: newData['profile.name'],
-												gender: newData['profile.gender'],
-												phone_number: newData['profile.phone_number']
-											}
-										}
-									})
-										.then(({ data: resolved }) => {
-											resolve(newData);
-											const data = state.data;
-
-											setState({
-												...state,
-												data: data.map(item => {
-													if (item.id === newData.id) {
-														return newData;
-													}
-													return item;
-												})
-											});
-										})
-										.catch(handleCatch.bind(this, reject));
-								}),
-							onRowDelete: oldData =>
-								new Promise((resolve, reject) => {
-									axios({
-										method: 'delete',
-										url: `/api/users/${oldData.id}/`
-									})
-										.then(({ data: resolved }) => {
-											const data = state.data;
-											setState({
-												...state,
-												data: data.filter(item => item.id !== oldData.id)
-											});
-											resolve();
-										})
-										.catch(handleCatch.bind(this, reject));
+									}
 								})
-						}}
-					/>
-				</ThemeProvider>
+									.then(({ data: resolved }) => {
+										resolve(newData);
+										const data = state.data;
+										data.push(newData);
+										setState({ ...state, data });
+									})
+									.catch(handleCatch.bind(this, reject));
+							}),
+						onRowUpdate: (newData, oldData) =>
+							new Promise((resolve, reject) => {
+								axios({
+									method: 'patch',
+									url: `/api/users/${newData.id}/`,
+									data: {
+										profile: {
+											name: newData['profile.name'],
+											gender: newData['profile.gender'],
+											phone_number: newData['profile.phone_number']
+										}
+									}
+								})
+									.then(({ data: resolved }) => {
+										resolve(newData);
+										const data = state.data;
+
+										setState({
+											...state,
+											data: data.map(item => {
+												if (item.id === newData.id) {
+													return newData;
+												}
+												return item;
+											})
+										});
+									})
+									.catch(handleCatch.bind(this, reject));
+							}),
+						onRowDelete: oldData =>
+							new Promise((resolve, reject) => {
+								axios({
+									method: 'delete',
+									url: `/api/users/${oldData.id}/`
+								})
+									.then(({ data: resolved }) => {
+										const data = state.data;
+										setState({
+											...state,
+											data: data.filter(item => item.id !== oldData.id)
+										});
+										resolve();
+									})
+									.catch(handleCatch.bind(this, reject));
+							})
+					}}
+				/>
 			</main>
 			<Snackbar
 				open={error.value}

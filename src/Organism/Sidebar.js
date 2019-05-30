@@ -1,6 +1,6 @@
 import React, { Fragment, useState } from 'react';
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
-import { makeStyles, withStyles } from '@material-ui/styles';
+import { withStyles } from '@material-ui/styles';
 import { AuthConsumer } from '../Context/AuthContext';
 import Drawer from '@material-ui/core/Drawer';
 import MenuIcon from '@material-ui/icons/Menu';
@@ -10,19 +10,6 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import IconButton from '@material-ui/core/IconButton';
-
-const useStyles = makeStyles({
-	list: {
-		width: 250
-	},
-	fullList: {
-		width: 'auto'
-	},
-	menuButton: {
-		marginLeft: -12,
-		marginRight: 20
-	}
-});
 
 const styles = {
 	list: {
