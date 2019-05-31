@@ -63,6 +63,7 @@ export default function AbsenceDate({ initStat, student, classroom, name, target
 			});
 			setAttendanceValue(new AttStat(stat, { date, remote: resolved }));
 		} else if (stat === makeup) {
+			console.log(date);
 			const { data: resolved } = await axios({
 				method: remote ? 'patch' : 'post',
 				url: `/api/classrooms/${classroom}/attendance${remote !== null ? `/${remote.id}` : ``}/`,

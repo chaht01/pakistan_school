@@ -19,6 +19,7 @@ import axios from 'axios';
 import { withStyles } from '@material-ui/styles';
 import { foreground, fonts } from '../const/colors';
 import UserClassrooms from '../Organism/UserClassrooms';
+import { getRolePriority } from '../const/auth';
 
 function renameKeys(obj) {
 	if (typeof obj !== 'object') return obj;
@@ -56,14 +57,20 @@ const styles = theme => ({
 	}
 });
 
+function flattenRole(roleArr, key) {
+	return {
+		[key || 'flatRole']: roleArr.length === 0 ? '' : getRolePriority(roleArr)
+	};
+}
+
 function Users({ classes }) {
 	const [state, setState] = useState({
 		columns: [
 			{ title: 'Name', field: 'profile.name' },
 			{ title: 'Username', field: 'username', editable: 'onAdd' },
 			{ title: 'Phone', field: 'profile.phone_number', editable: 'onUpdate' },
-			{ title: 'Gender', field: 'profile.gender', lookup: { Man: 'Man', Woman: 'Woman' } }
-			// { title: 'Class', field: 'classroom.name', editable: 'never' }
+			{ title: 'Gender', field: 'profile.gender', lookup: { Man: 'Man', Woman: 'Woman' } },
+			{ title: 'Role', field: 'role', lookup: { Admin: 'Admin', Instructor: 'Instructor', Student: 'Student' } }
 		],
 		data: []
 	});
@@ -76,7 +83,11 @@ function Users({ classes }) {
 				method: 'get',
 				url: '/api/users/'
 			});
-			setState({ ...state, data });
+			const roleFlattendData = data.map(person => ({
+				...person,
+				...flattenRole(person.roles, 'role')
+			}));
+			setState({ ...state, data: roleFlattendData });
 		}
 		fetchUsers();
 	}, []);
@@ -125,33 +136,43 @@ function Users({ classes }) {
 						Clear: ClearIcon,
 						DetailPanel: ChevronRightIcon
 					}}
-					// detailPanel={rowData => <UserClassrooms classrooms={rowData.classrooms} />}
-					// options={{
-					// 	actionsColumnIndex: -1
-					// }}
-					// onRowClick={(event, rowData, togglePanel) => togglePanel()}
+					detailPanel={rowData => <UserClassrooms classrooms={rowData.classrooms} />}
+					options={{
+						actionsColumnIndex: -1,
+						pageSize: 10
+					}}
+					onRowClick={(event, rowData, togglePanel) => togglePanel()}
 					editable={{
-						onRowAdd: newData =>
-							new Promise((resolve, reject) => {
-								axios({
-									method: 'post',
-									url: '/api/users/',
-									data: {
-										username: newData.username,
-										profile: {
-											name: newData['profile.name'],
-											gender: newData['profile.gender']
+						onRowAdd: newData => {
+							console.log(newData);
+							if (newData.role === '' || newData.role === undefined) {
+								return new Promise((_, reject) => {
+									return handleCatch(reject, { response: { data: { role: '권한을 정해주세요' } } });
+								});
+							} else {
+								return new Promise((resolve, reject) => {
+									axios({
+										method: 'post',
+										url: '/api/users/',
+										data: {
+											username: newData.username,
+											profile: {
+												name: newData['profile.name'],
+												gender: newData['profile.gender']
+											},
+											role: newData.role
 										}
-									}
-								})
-									.then(({ data: resolved }) => {
-										resolve(newData);
-										const data = state.data;
-										data.push(newData);
-										setState({ ...state, data });
 									})
-									.catch(handleCatch.bind(this, reject));
-							}),
+										.then(({ data: resolved }) => {
+											resolve(newData);
+											const data = state.data;
+											data.push(newData);
+											setState({ ...state, data });
+										})
+										.catch(handleCatch.bind(this, reject));
+								});
+							}
+						},
 						onRowUpdate: (newData, oldData) =>
 							new Promise((resolve, reject) => {
 								axios({
@@ -162,7 +183,8 @@ function Users({ classes }) {
 											name: newData['profile.name'],
 											gender: newData['profile.gender'],
 											phone_number: newData['profile.phone_number']
-										}
+										},
+										role: newData.role
 									}
 								})
 									.then(({ data: resolved }) => {

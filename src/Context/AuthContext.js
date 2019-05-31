@@ -3,7 +3,7 @@ import { authority, getRolePriority } from '../const/auth';
 import axios from 'axios';
 
 const AuthContext = React.createContext();
-const local = false;
+const local = true;
 function AuthProvider({ children }) {
 	const { UNAUTH, AUTH, ADMIN, INSTRUCTOR, STUDENT } = authority;
 	const savedToken = localStorage.getItem('token');
@@ -11,7 +11,7 @@ function AuthProvider({ children }) {
 	const savedRole =
 		localStorage.getItem('roles') === null
 			? UNAUTH
-			: authority[getRolePriority(localStorage.getItem('roles').split(','))];
+			: authority[getRolePriority(localStorage.getItem('roles').split(',')).toUpperCase()];
 	setupDefault(savedToken);
 	const [auth, setAuth] = useState(savedRole);
 	if (savedToken !== null && savedToken.length > 0 && savedUser !== null) {
@@ -37,7 +37,7 @@ function AuthProvider({ children }) {
 		localStorage.setItem('user', JSON.stringify(user));
 		localStorage.setItem('roles', roles);
 		setupDefault(token);
-		setAuth(authority[getRolePriority(roles)]);
+		setAuth(authority[getRolePriority(roles).toUpperCase()]);
 	}
 
 	function fail() {
