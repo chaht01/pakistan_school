@@ -13,28 +13,6 @@ import { DateConsumer } from '../Context/DateContext';
 
 const styles = theme => ({});
 
-function DateTime() {
-	const [date, setDate] = useState(new Date());
-
-	useEffect(() => {
-		var timerID = setInterval(() => tick(), 1000);
-
-		return function cleanup() {
-			clearInterval(timerID);
-		};
-	});
-
-	function tick() {
-		setDate(new Date());
-	}
-
-	return (
-		<Typography variant="button">
-			{date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
-		</Typography>
-	);
-}
-
 function DateController({ size: { width }, classes }) {
 	return (
 		<DateConsumer>
@@ -58,11 +36,6 @@ function DateController({ size: { width }, classes }) {
 					<Box component="span">
 						<WeekPicker selectedDate={selectedDate} handleSelectedDate={handleSelectedDate} />
 					</Box>
-					{/* <Hidden smDown>
-						<Box component="span" className={classes.group}>
-							<DateTime />
-						</Box>
-					</Hidden> */}
 				</Fragment>
 			)}
 		</DateConsumer>
