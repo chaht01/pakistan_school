@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import MaterialTable from 'material-table';
+import MaterialTable, { MTableToolbar, MTablePagination } from 'material-table';
 import Snackbar from '@material-ui/core/Snackbar';
 import Slide from '@material-ui/core/Slide';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
-import AddIcon from '@material-ui/icons/Add';
+import AddBoxIcon from '@material-ui/icons/AddBox';
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 import EditIcon from '@material-ui/icons/Edit';
 import DoneIcon from '@material-ui/icons/Done';
@@ -42,7 +42,16 @@ const styles = theme => ({
 	},
 	sticky: {
 		position: 'sticky',
+		zIndex: 100,
+		background: '#fff',
+		borderBottom: `1px solid ${foreground.gray}`,
 		...renameKeys(theme.mixins.toolbar)
+	},
+	footer: {
+		position: 'sticky',
+		zIndex: 100,
+		bottom: 0,
+		background: '#fff'
 	},
 	main: {
 		width: 'auto',
@@ -121,8 +130,15 @@ function Users({ classes }) {
 					title="Users"
 					columns={state.columns}
 					data={state.data}
+					components={{
+						Toolbar: props => (
+							<div className={classes.sticky}>
+								<MTableToolbar {...props} />
+							</div>
+						)
+					}}
 					icons={{
-						Add: AddIcon,
+						Add: AddBoxIcon,
 						Delete: DeleteOutlineIcon,
 						Edit: EditIcon,
 						Check: DoneIcon,
@@ -136,7 +152,7 @@ function Users({ classes }) {
 						Clear: ClearIcon,
 						DetailPanel: ChevronRightIcon
 					}}
-					detailPanel={rowData => <UserClassrooms classrooms={rowData.classrooms} />}
+					detailPanel={rowData => <UserClassrooms classrooms={rowData.classrooms} student={rowData.id} />}
 					options={{
 						actionsColumnIndex: -1,
 						pageSize: 10
@@ -144,7 +160,6 @@ function Users({ classes }) {
 					onRowClick={(event, rowData, togglePanel) => togglePanel()}
 					editable={{
 						onRowAdd: newData => {
-							console.log(newData);
 							if (newData.role === '' || newData.role === undefined) {
 								return new Promise((_, reject) => {
 									return handleCatch(reject, { response: { data: { role: '권한을 정해주세요' } } });
