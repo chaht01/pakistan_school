@@ -209,11 +209,18 @@ function MakeUpPicker({ attObj, student, classroom, handleChange, targetDate, re
 	const [now, setNow] = useState(targetDate);
 	const [err, setErr] = useState(detailError);
 	const [mask, setMask] = useState(getDefaultMask(now)[0]);
+	const [initFlag, setInitFlag] = useState(false);
 	const CancelToken = axios.CancelToken;
 	const source = CancelToken.source();
 	function cleanup() {
 		source.cancel('canceled');
 	}
+	if (date === null && !initFlag && !detailError) {
+		setInitFlag(true);
+		setErr(true);
+		reportError(true);
+	}
+
 	useEffect(
 		() => {
 			async function getDayMask(now) {
@@ -274,12 +281,12 @@ function MakeUpPicker({ attObj, student, classroom, handleChange, targetDate, re
 		}
 		return true;
 	}
-	const onAccept = () => {
+	function onAccept() {
 		handleChange({ target: { name: 'date', value: selectedDate } });
 		const error = !checkValidDate(selectedDate);
 		setErr(error);
 		reportError(error);
-	};
+	}
 	const onChange = value => {
 		handleDate(value);
 	};
