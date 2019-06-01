@@ -92,7 +92,7 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 				setClassrooms(classrooms);
 
 				const targetClass = classrooms.find(classroom => classroom.id == classId);
-				console.log(targetClass);
+
 				if (!targetClass) {
 					setSelectedClassroom(-1);
 					setTargetClass(null);
@@ -207,22 +207,27 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 												name="class"
 												onChange={handleChange}
 											>
-												{classrooms.map(b => (
-													<MenuItem
-														key={b.id}
-														value={b.id}
-														component={Link}
-														to={`/classroom/${b.id}/`}
-													>
-														<ListItemText
-															primary={b.name}
-															secondary={`${targetClass
-																? `${targetClass.schedule.startTime} ~ ${targetClass
-																		.schedule.endTime}`
-																: `loading...`}`}
-														/>
-													</MenuItem>
-												))}
+												{classrooms.map(b => {
+													console.log(b);
+													return (
+														<MenuItem
+															key={b.id}
+															value={b.id}
+															component={Link}
+															to={`/classroom/${b.id}/`}
+														>
+															<ListItemText
+																primary={b.name}
+																secondary={`${b.lessons.length > 0
+																	? `${b.lessons[0].start_time.slice(
+																			0,
+																			-3
+																		)} ~ ${b.lessons[0].end_time.slice(0, -3)}`
+																	: ``}`}
+															/>
+														</MenuItem>
+													);
+												})}
 											</Select>
 										</FormControl>
 									</Grid>
