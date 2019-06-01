@@ -152,7 +152,9 @@ function Users({ classes }) {
 						Clear: ClearIcon,
 						DetailPanel: ChevronRightIcon
 					}}
-					detailPanel={rowData => <UserClassrooms classrooms={rowData.classrooms} student={rowData.id} />}
+					detailPanel={rowData => {
+						return <UserClassrooms classrooms={rowData.classrooms} student={rowData.id} />;
+					}}
 					options={{
 						actionsColumnIndex: -1,
 						pageSize: 10
@@ -179,9 +181,15 @@ function Users({ classes }) {
 										}
 									})
 										.then(({ data: resolved }) => {
-											resolve(newData);
+											resolve({
+												...resolved,
+												...newData
+											});
 											const data = state.data;
-											data.push(newData);
+											data.push({
+												...resolved,
+												...newData
+											});
 											setState({ ...state, data });
 										})
 										.catch(handleCatch.bind(this, reject));
