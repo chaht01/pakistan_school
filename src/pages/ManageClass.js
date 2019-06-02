@@ -7,6 +7,10 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
+import Snackbar from '@material-ui/core/Snackbar';
+import Slide from '@material-ui/core/Slide';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import FormControl from '@material-ui/core/FormControl';
@@ -104,6 +108,7 @@ function ManageClass({ classes, match, history }) {
 	const [days, handleDays] = useState({ value: [0, 0, 0, 0, 0, 0, 0], error: false, dirty: true });
 	const [buildings, setBuildings] = useState([]);
 	const [building, setBuilding] = useState(-1);
+	const [error, setError] = useState({ value: false, message: '' });
 
 	useEffect(() => {
 		async function fetchClassroom() {
@@ -173,7 +178,50 @@ function ManageClass({ classes, match, history }) {
 		fetchPool();
 	}, []);
 
+	function validate() {
+		const agenda = [className, startDate, endDate, startTime, endTime, days];
+		const label = ['Class Name', 'Start Date', 'End Date', 'Start Time', 'End Time', 'Schedule'];
+
+		let msg = {};
+
+		agenda.map((criteria, idx) => {
+			if (!criteria.dirty || criteria.error) {
+				msg[label[idx]] = '값이 없거나 잘못 입력되었습니다.';
+			}
+		});
+
+		if (instructorChips.error || instructorChips.value.length === 0) {
+			msg['Instructors'] = '1명 이상의 강사가 필요합니다';
+		}
+
+		if (studentChips.error || studentChips.value.length === 0) {
+			msg['Students'] = '1명 이상의 학생이 필요합니다';
+		}
+
+		return msg;
+	}
+
+	function raiseError(msg) {
+		let message = Object.entries(msg).map(([key, value]) => <div>{`${key}: ${value}`}</div>);
+		setError({
+			value: true,
+			message
+		});
+	}
+	function onCloseError() {
+		setError({
+			value: false,
+			message: ''
+		});
+	}
+
 	async function save() {
+		const validateMsg = validate();
+		if (Object.keys(validateMsg).length > 0) {
+			raiseError(validateMsg);
+			// console.log(validateMsg);
+			return;
+		}
 		await axios({
 			method: 'patch',
 			url: `/api/classrooms/${classroom.id}/`,
@@ -327,23 +375,26 @@ function ManageClass({ classes, match, history }) {
 							color="secondary"
 							className={classes.submit}
 							onClick={save}
-							disabled={
-								!className.dirty ||
-								className.error ||
-								(!startDate.dirty || startDate.error) ||
-								(!endDate.dirty || endDate.error) ||
-								(!startTime.dirty || startTime.error) ||
-								(!endTime.dirty || endTime.error) ||
-								(!days.dirty || days.error) ||
-								(instructorChips.error || instructorChips.value.length === 0) ||
-								(studentChips.error || studentChips.value.length === 0)
-							}
 						>
 							Save
 						</Button>
 					</Grid>
 				</Grid>
 			</main>
+			<Snackbar
+				open={error.value}
+				onClose={onCloseError}
+				TransitionComponent={Slide}
+				ContentProps={{
+					'aria-describedby': 'message-id'
+				}}
+				message={error.message}
+				action={[
+					<IconButton key="close" aria-label="Close" color="inherit" onClick={onCloseError}>
+						<CloseIcon />
+					</IconButton>
+				]}
+			/>
 		</div>
 	);
 }

@@ -24,7 +24,7 @@ const styles = theme => ({
 });
 function UserClassrooms({ classes, classrooms, student }) {
 	return (
-		<Grid container justify={'center'} className={classes.root}>
+		<Grid container className={classes.root}>
 			{classrooms.map(classroom => (
 				<Card key={classroom.id} comonent={Grid} className={classes.card}>
 					<CardContent className={classes.cardContent}>

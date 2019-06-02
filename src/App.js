@@ -47,54 +47,6 @@ const styles = theme => {
 
 function App({ classes }) {
 	const { attended, none, absence, scheduled, late, makeup } = attendance;
-	const dummyClass = {
-		title: 'Math',
-		lecturers: ['James', 'Hyuntak', 'Khan'],
-		schedule: {
-			initDays: [1, 0, 1, 0, 1, 1, 0],
-			startTime: Date.now(),
-			endTime: Date.now() + 300000
-		},
-		absences: [
-			{
-				name: 'alice',
-				absenceStatus: [
-					new AttStat(attended),
-					new AttStat(none),
-					new AttStat(late, new Date()),
-					new AttStat(none),
-					new AttStat(absence),
-					new AttStat(scheduled),
-					new AttStat(none)
-				]
-			},
-			{
-				name: 'Amily',
-				absenceStatus: [
-					new AttStat(attended),
-					new AttStat(none),
-					new AttStat(absence),
-					new AttStat(makeup, new Date()),
-					new AttStat(absence),
-					new AttStat(scheduled),
-					new AttStat(none)
-				]
-			},
-			{
-				name: '차현탁',
-				absenceStatus: [
-					new AttStat(absence),
-					new AttStat(none),
-					new AttStat(attended),
-					new AttStat(none),
-					new AttStat(attended),
-					new AttStat(scheduled),
-					new AttStat(none)
-				]
-			}
-		]
-	};
-
 	const routes = [
 		{
 			path: '/',

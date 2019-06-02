@@ -29,6 +29,8 @@ function FinalCheckDialog({
 	scheduleComp: ScheduleComp,
 	toSave,
 	history,
+	validate,
+	raiseError,
 	location
 }) {
 	const [open, setOpen] = useState(false);
@@ -42,6 +44,12 @@ function FinalCheckDialog({
 	}
 
 	async function save() {
+		const validateMsg = validate();
+		if (Object.keys(validateMsg).length > 0) {
+			raiseError(validateMsg);
+			// console.log(validateMsg);
+			return;
+		}
 		const {
 			startDate: start_date,
 			endDate: end_date,

@@ -26,7 +26,9 @@ function CustomElements({ classes, width, selectedDate, handleSelectedDate, ...r
 	const formatWeekSelectLabel = (date, invalidLabel) => {
 		let dateClone = date;
 
-		return dateClone && isValid(dateClone) ? `${format(startOfWeek(dateClone), 'MMM do')}` : invalidLabel;
+		return dateClone && isValid(dateClone)
+			? `${format(startOfWeek(dateClone), 'MM/dd')} ~ ${format(endOfWeek(dateClone), 'MM/dd')}`
+			: invalidLabel;
 	};
 
 	const renderWrappedWeekDay = (date, selectedDate, dayInCurrentMonth) => {
@@ -91,7 +93,7 @@ function CustomElements({ classes, width, selectedDate, handleSelectedDate, ...r
 
 const styles = createStyles(theme => ({
 	adjustedInput: {
-		maxWidth: '120px',
+		maxWidth: '165px',
 		[theme.breakpoints.down('sm')]: {
 			'&>input': {
 				width: 0

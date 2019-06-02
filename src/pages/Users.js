@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
+import Avatar from '@material-ui/core/Avatar';
+import Input from '@material-ui/core/Input';
+import Hidden from '@material-ui/core/Hidden';
+import Button from '@material-ui/core/Button';
 import MaterialTable, { MTableToolbar, MTablePagination } from 'material-table';
 import Snackbar from '@material-ui/core/Snackbar';
 import Slide from '@material-ui/core/Slide';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
+import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import AddBoxIcon from '@material-ui/icons/AddBox';
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 import EditIcon from '@material-ui/icons/Edit';
@@ -19,7 +24,7 @@ import axios from 'axios';
 import { withStyles } from '@material-ui/styles';
 import { foreground, fonts } from '../const/colors';
 import UserClassrooms from '../Organism/UserClassrooms';
-import { getRolePriority } from '../const/auth';
+import { authority, getRolePriority, underRole } from '../const/auth';
 
 function renameKeys(obj) {
 	if (typeof obj !== 'object') return obj;
@@ -63,6 +68,15 @@ const styles = theme => ({
 			marginLeft: 'auto',
 			marginRight: 'auto'
 		}
+	},
+	uploadButton: {
+		display: 'none',
+		zIndex: -9999
+	},
+	uploadAvatar: {
+		width: 30,
+		height: 30,
+		marginRight: 10
 	}
 });
 
@@ -73,14 +87,91 @@ function flattenRole(roleArr, key) {
 }
 
 function Users({ classes }) {
+	const roleSelf = getRolePriority(localStorage.getItem('roles').split(','));
+	const availableRoles = underRole(roleSelf);
+	let role_lookup = availableRoles.reduce(function(acc, cur) {
+		acc[cur] = cur;
+		return acc;
+	}, {});
+
+	const columns = [
+		{
+			title: 'Profile',
+			field: 'profile.picture',
+			render: rowData => (
+				<Avatar alt={rowData.profile.name} src={rowData.profile.picture}>
+					{rowData.profile.name[0]}
+				</Avatar>
+			),
+			editComponent: ({ rowData, value, onChange, columnDef }) => {
+				const [img, setImg] = useState(rowData.profile.picture);
+				function handleTempUpload(input) {
+					// onChange(input.target.value);
+					if (input.target.files && input.target.files[0]) {
+						onChange(input.target.files[0]);
+						var reader = new FileReader();
+						reader.onload = function(e) {
+							console.log(e.target);
+							setImg(e.target.result);
+							// onChange(e.target.result);
+							// onChange({ img: e.target.result, local: input.target });
+						};
+
+						reader.readAsDataURL(input.target.files[0]);
+					}
+				}
+				return (
+					<Fragment>
+						<input
+							accept="image/*"
+							id="raised-button-file"
+							type="file"
+							className={classes.uploadButton}
+							// value={value}
+							onChange={handleTempUpload.bind(this)}
+						/>
+
+						<label htmlFor="raised-button-file">
+							<Button
+								variant="outlined"
+								component="span"
+								color="primary"
+								className={classes.button}
+								size="small"
+							>
+								<Avatar className={classes.uploadAvatar} alt={rowData.profile.name} src={img}>
+									{rowData.profile.name[0]}
+								</Avatar>{' '}
+								Upload
+							</Button>
+						</label>
+					</Fragment>
+				);
+			}
+		},
+		{ title: 'Name *', field: 'profile.name' },
+		{ title: 'Username *', field: 'username', editable: 'onAdd' },
+		{
+			title: 'Role *',
+			field: 'role',
+			lookup: role_lookup
+		},
+		{
+			title: 'Password',
+			field: 'password',
+			render: rowData => <span>****</span>
+		},
+		{ title: 'Phone', field: 'profile.phone_number', editable: 'onUpdate' },
+		{ title: 'Gender', field: 'profile.gender', lookup: { Man: 'Man', Woman: 'Woman' } },
+		{ title: 'Birthday', field: 'profile.birthday', type: 'date' },
+		{ title: 'Age', field: 'profile.age', type: 'numeric' },
+		{ title: 'Hobby', field: 'profile.hobby', type: 'string' },
+		{ title: 'Address', field: 'profile.address', type: 'string' },
+		{ title: 'Religion', field: 'profile.religion', type: 'string' },
+		{ title: 'Church', field: 'profile.church_name', type: 'string' }
+	];
 	const [state, setState] = useState({
-		columns: [
-			{ title: 'Name', field: 'profile.name' },
-			{ title: 'Username', field: 'username', editable: 'onAdd' },
-			{ title: 'Phone', field: 'profile.phone_number', editable: 'onUpdate' },
-			{ title: 'Gender', field: 'profile.gender', lookup: { Man: 'Man', Woman: 'Woman' } },
-			{ title: 'Role', field: 'role', lookup: { Admin: 'Admin', Instructor: 'Instructor', Student: 'Student' } }
-		],
+		columns,
 		data: []
 	});
 
@@ -129,7 +220,7 @@ function Users({ classes }) {
 				<MaterialTable
 					title="Users"
 					columns={state.columns}
-					data={state.data}
+					data={state.data.filter(person => availableRoles.indexOf(person.role) > -1)}
 					components={{
 						Toolbar: props => (
 							<div className={classes.sticky}>
@@ -152,9 +243,11 @@ function Users({ classes }) {
 						Clear: ClearIcon,
 						DetailPanel: ChevronRightIcon
 					}}
-					detailPanel={rowData => <UserClassrooms classrooms={rowData.classrooms} student={rowData.id} />}
+					detailPanel={rowData => {
+						return <UserClassrooms classrooms={rowData.classrooms} student={rowData.id} />;
+					}}
 					options={{
-						actionsColumnIndex: -1,
+						// actionsColumnIndex: -1,
 						pageSize: 10
 					}}
 					onRowClick={(event, rowData, togglePanel) => togglePanel()}
@@ -175,13 +268,21 @@ function Users({ classes }) {
 												name: newData['profile.name'],
 												gender: newData['profile.gender']
 											},
-											role: newData.role
+											role: newData.role,
+											...(newData.password &&
+												newData.password.length > 0 && { password: newData.password })
 										}
 									})
 										.then(({ data: resolved }) => {
-											resolve(newData);
+											resolve({
+												...resolved,
+												...newData
+											});
 											const data = state.data;
-											data.push(newData);
+											data.push({
+												...resolved,
+												...newData
+											});
 											setState({ ...state, data });
 										})
 										.catch(handleCatch.bind(this, reject));
@@ -190,27 +291,54 @@ function Users({ classes }) {
 						},
 						onRowUpdate: (newData, oldData) =>
 							new Promise((resolve, reject) => {
+								console.log(newData);
+
+								let data = new FormData();
+
+								columns.forEach(({ field }) => {
+									if (newData[field]) {
+										data.append(field, newData[field]);
+									}
+								});
+
+								// if (newData['profile.name']) {
+								// 	data.append('profile.name', newData['profile.name']);
+								// }
+								// if (newData['profile.gender']) {
+								// 	data.append('profile.gender', newData['profile.gender']);
+								// }
+								// if (newData['profile.phone_number']) {
+								// 	data.append('profile.phone_number', newData['profile.phone_number']);
+								// }
+								// if (newData['imageUrl']) {
+								// 	data.append('profile.picture', newData['imageUrl'], newData['imageUrl'].name);
+								// }
+
+								// data.append('role', newData.role);
+								// if (newData.password && newData.password.length > 0) {
+								// 	data.append('password', newData.password);
+								// }
 								axios({
 									method: 'patch',
 									url: `/api/users/${newData.id}/`,
-									data: {
-										profile: {
-											name: newData['profile.name'],
-											gender: newData['profile.gender'],
-											phone_number: newData['profile.phone_number']
-										},
-										role: newData.role
-									}
+									headers: { 'content-type': 'multipart/form-data' },
+									data
 								})
 									.then(({ data: resolved }) => {
-										resolve(newData);
+										resolve({
+											...resolved,
+											...newData
+										});
 										const data = state.data;
 
 										setState({
 											...state,
 											data: data.map(item => {
 												if (item.id === newData.id) {
-													return newData;
+													return {
+														...resolved,
+														...newData
+													};
 												}
 												return item;
 											})

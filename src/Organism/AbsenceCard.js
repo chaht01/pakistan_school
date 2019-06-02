@@ -15,13 +15,17 @@ import { attendance, scheduleMask } from '../const/attendance';
 import Box from '@material-ui/core/Box';
 import { Link } from 'react-router-dom';
 
-const styles = {
+const styles = theme => ({
 	card: {
 		minWidth: 275,
 		backgroundColor: foreground.lightGreenGray,
 		display: 'flex',
 		flexDirection: 'column',
-		margin: '30px 0'
+		margin: '30px 0',
+		textDecoration: 'none',
+		'&:hover': {
+			boxShadow: theme.shadows[4]
+		}
 	},
 	title: {
 		textTransform: 'capitalize'
@@ -40,7 +44,7 @@ const styles = {
 			borderRight: '1px solid #e1e1e7'
 		}
 	}
-};
+});
 
 const ScrollableCardContent = styled(CardContent)`
 	flex: 1;

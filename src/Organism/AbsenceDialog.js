@@ -311,10 +311,17 @@ function MakeUpPicker({ attObj, student, classroom, handleChange, targetDate, re
 
 function LatePicker({ attObj, student, classroom, handleChange, targetDate, reportError }) {
 	const { stat, date, remote } = attObj;
+	const [initFlag, setInitFlag] = useState(false);
 	const [selectedTime, handleTime] = useState(date || new Date());
 	const onAccept = () => {
 		handleChange({ target: { name: 'date', value: selectedTime } });
 	};
+
+	if (date === null && !initFlag) {
+		setInitFlag(true);
+		onAccept();
+	}
+
 	return (
 		<ThemeProvider theme={materialTheme(colorMatcher(attendance.late))}>
 			<TimePicker

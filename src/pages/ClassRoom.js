@@ -3,11 +3,6 @@ import { PropTypes } from 'prop-types';
 import { withStyles, createMuiTheme, responsiveFontSizes } from '@material-ui/core/styles';
 import { withRouter } from 'react-router';
 import { DateConsumer } from '../Context/DateContext';
-import Backbone, { StructuredBar, StructuredContent } from '../Molcules/Backbone';
-import { AuthConsumer } from '../Context/AuthContext';
-import AbsenceCounter from '../Organism/AbsenceCounter';
-import HorizonLabelGroup from '../Molcules/HorizonLabelGroup';
-import ScheduleBullet from '../Molcules/ScheduleBullet';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Statbar from '../Organism/Statbar';
@@ -92,7 +87,7 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 				setClassrooms(classrooms);
 
 				const targetClass = classrooms.find(classroom => classroom.id == classId);
-				console.log(targetClass);
+
 				if (!targetClass) {
 					setSelectedClassroom(-1);
 					setTargetClass(null);
@@ -135,10 +130,12 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 						}
 					});
 					let arrangeByStudent = {};
-					targetClass.students.map(({ id: studentId, profile: { name } }) => {
+					targetClass.students.map(student => {
+						const { id: studentId, profile: { name } } = student;
 						if (!(studentId in arrangeByStudent)) {
 							arrangeByStudent[studentId] = {
 								name,
+								student,
 								absenceStatus: initDays.map(val => new AttStat(none))
 							};
 						}
@@ -207,22 +204,26 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 												name="class"
 												onChange={handleChange}
 											>
-												{classrooms.map(b => (
-													<MenuItem
-														key={b.id}
-														value={b.id}
-														component={Link}
-														to={`/classroom/${b.id}/`}
-													>
-														<ListItemText
-															primary={b.name}
-															secondary={`${targetClass
-																? `${targetClass.schedule.startTime} ~ ${targetClass
-																		.schedule.endTime}`
-																: `loading...`}`}
-														/>
-													</MenuItem>
-												))}
+												{classrooms.map(b => {
+													return (
+														<MenuItem
+															key={b.id}
+															value={b.id}
+															component={Link}
+															to={`/classroom/${b.id}/`}
+														>
+															<ListItemText
+																primary={b.name}
+																secondary={`${b.lessons.length > 0
+																	? `${b.lessons[0].start_time.slice(
+																			0,
+																			-3
+																		)} ~ ${b.lessons[0].end_time.slice(0, -3)}`
+																	: ``}`}
+															/>
+														</MenuItem>
+													);
+												})}
 											</Select>
 										</FormControl>
 									</Grid>
