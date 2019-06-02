@@ -9,8 +9,6 @@ import Paper from '@material-ui/core/Paper';
 import MenuItem from '@material-ui/core/MenuItem';
 import { withStyles } from '@material-ui/core/styles';
 import ChipInput from 'material-ui-chip-input';
-import _debounce from 'lodash.debounce';
-import _throttle from 'lodash.throttle';
 import { useState } from 'react';
 
 function renderInput(inputProps) {
@@ -21,6 +19,9 @@ function renderInput(inputProps) {
 function renderSuggestion(suggestion, { query, isHighlighted }) {
 	const matches = match(suggestion.profile.name, query);
 	const parts = parse(suggestion.profile.name, matches);
+	if (matches.length === 0) {
+		return null;
+	}
 	return (
 		<MenuItem
 			selected={isHighlighted}

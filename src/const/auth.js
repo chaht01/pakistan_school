@@ -18,3 +18,16 @@ export const getRolePriority = roles => {
 	const priority = ['Admin', 'Instructor', 'Student'];
 	return priority[roles.map(role => priority.indexOf(role)).reduce((acc, curr) => (acc > curr ? curr : acc))];
 };
+
+export const underRole = role => {
+	console.log(role);
+	const priority = ['Admin', 'Instructor', 'Student'];
+	let found = false;
+	return priority.filter(item => {
+		if (item === role) {
+			found = true;
+		}
+		if (found) return true;
+		return false;
+	});
+};

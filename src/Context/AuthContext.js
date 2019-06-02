@@ -20,7 +20,11 @@ function AuthProvider({ children }) {
 				token: savedToken
 			})
 			.then(({ data: { token, user, roles } }) => {
-				success(token, user, roles);
+				if (roles.length > 0) {
+					success(token, user, roles);
+				} else {
+					throw new Error();
+				}
 			})
 			.catch(() => {
 				fail();
@@ -56,7 +60,7 @@ function AuthProvider({ children }) {
 			})
 			.catch(err => ({ data: { token: '', user: null, roles: [] } }));
 
-		if (token.length > 0 && user !== null) {
+		if (token.length > 0 && user !== null && roles.length > 0) {
 			success(token, user, roles);
 		} else {
 			fail();

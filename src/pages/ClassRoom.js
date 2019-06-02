@@ -130,10 +130,12 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 						}
 					});
 					let arrangeByStudent = {};
-					targetClass.students.map(({ id: studentId, profile: { name } }) => {
+					targetClass.students.map(student => {
+						const { id: studentId, profile: { name } } = student;
 						if (!(studentId in arrangeByStudent)) {
 							arrangeByStudent[studentId] = {
 								name,
+								student,
 								absenceStatus: initDays.map(val => new AttStat(none))
 							};
 						}

@@ -80,6 +80,14 @@ const styles = theme => ({
 	student: {
 		...calendarRow,
 		height: 100,
+		[theme.breakpoints.down('md')]: {
+			...calendarRow[[theme.breakpoints.down('md')]],
+			height: 80
+		},
+		[theme.breakpoints.down('sm')]: {
+			...calendarRow[[theme.breakpoints.down('sm')]],
+			height: 60
+		},
 		background: foreground.white,
 		'&> *:first-child': {
 			position: 'relative',
@@ -103,35 +111,40 @@ const styles = theme => ({
 	}
 });
 
-function StudentRow({ classes, student, classroom, name, absenceStatus, startDate }) {
+function StudentRow({ classes, student, classroom, absenceStatus, startDate }) {
 	function onChange(resolved, offset) {}
-	console.log(absenceStatus, classroom, student);
 	return (
-		<div className={classes.student}>
-			<ListItem alignItems="center">
-				<Hidden mdDown>
-					<ListItemAvatar>
-						<Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-					</ListItemAvatar>
-				</Hidden>
-				<ListItemText primary={name} />
-			</ListItem>
-			{absenceStatus.map((abs, offset) => {
-				const targetDate = new Date(startDate);
-				targetDate.setDate(targetDate.getDate() + offset);
-				return (
-					<AbsenceDate
-						key={offset}
-						classroom={classroom}
-						student={student}
-						initStat={abs}
-						name={name}
-						targetDate={targetDate}
-						onChange={onChange.bind(offset)}
-					/>
-				);
-			})}
-		</div>
+		<ThemeProvider theme={theme}>
+			<div className={classes.student}>
+				<ListItem alignItems="center">
+					<Hidden mdDown>
+						<ListItemAvatar>
+							<Avatar alt={student.profile.name} src={student.profile.picture}>
+								{student.profile.name[0]}
+							</Avatar>
+						</ListItemAvatar>
+					</Hidden>
+					<ListItemText>
+						<Typography variant="body">{student.profile.name}</Typography>
+					</ListItemText>
+				</ListItem>
+				{absenceStatus.map((abs, offset) => {
+					const targetDate = new Date(startDate);
+					targetDate.setDate(targetDate.getDate() + offset);
+					return (
+						<AbsenceDate
+							key={offset}
+							classroom={classroom}
+							student={student.id}
+							initStat={abs}
+							name={student.profile.name}
+							targetDate={targetDate}
+							onChange={onChange.bind(offset)}
+						/>
+					);
+				})}
+			</div>
+		</ThemeProvider>
 	);
 }
 
@@ -174,16 +187,19 @@ function Calendar({ classes, absences = [], classroom, classrooms, startDate, en
 						</Button>
 					</Grid>
 				) : classroom > 0 ? (
-					absences.map(({ id, name, absenceStatus }) => (
-						<StudentRowComp
-							key={id}
-							classroom={classroom}
-							student={id}
-							name={name}
-							absenceStatus={absenceStatus}
-							startDate={startDate}
-						/>
-					))
+					absences
+						.sort((a, b) => {
+							return a.student.profile.name.localeCompare(b.student.profile.name);
+						})
+						.map(({ student, absenceStatus }) => (
+							<StudentRowComp
+								key={student.id}
+								classroom={classroom}
+								student={student}
+								absenceStatus={absenceStatus}
+								startDate={startDate}
+							/>
+						))
 				) : (
 					<Grid container justify="center" alignItems={'center'} className={classes.studentContainer}>
 						<Typography variant="h3">Make sure that you select any class XD</Typography>
