@@ -3,11 +3,6 @@ import { PropTypes } from 'prop-types';
 import { withStyles, createMuiTheme, responsiveFontSizes } from '@material-ui/core/styles';
 import { withRouter } from 'react-router';
 import { DateConsumer } from '../Context/DateContext';
-import Backbone, { StructuredBar, StructuredContent } from '../Molcules/Backbone';
-import { AuthConsumer } from '../Context/AuthContext';
-import AbsenceCounter from '../Organism/AbsenceCounter';
-import HorizonLabelGroup from '../Molcules/HorizonLabelGroup';
-import ScheduleBullet from '../Molcules/ScheduleBullet';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Statbar from '../Organism/Statbar';
@@ -208,7 +203,6 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 												onChange={handleChange}
 											>
 												{classrooms.map(b => {
-													console.log(b);
 													return (
 														<MenuItem
 															key={b.id}

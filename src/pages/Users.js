@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
+import Avatar from '@material-ui/core/Avatar';
+import Input from '@material-ui/core/Input';
+import Hidden from '@material-ui/core/Hidden';
+import Button from '@material-ui/core/Button';
 import MaterialTable, { MTableToolbar, MTablePagination } from 'material-table';
 import Snackbar from '@material-ui/core/Snackbar';
 import Slide from '@material-ui/core/Slide';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
+import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import AddBoxIcon from '@material-ui/icons/AddBox';
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 import EditIcon from '@material-ui/icons/Edit';
@@ -63,6 +68,10 @@ const styles = theme => ({
 			marginLeft: 'auto',
 			marginRight: 'auto'
 		}
+	},
+	uploadButton: {
+		display: 'none',
+		zIndex: -9999
 	}
 });
 
@@ -75,11 +84,64 @@ function flattenRole(roleArr, key) {
 function Users({ classes }) {
 	const [state, setState] = useState({
 		columns: [
-			{ title: 'Name', field: 'profile.name' },
-			{ title: 'Username', field: 'username', editable: 'onAdd' },
+			{
+				title: 'Avatar',
+				field: 'imageUrl',
+				render: rowData => (
+					<Avatar alt={rowData.profile.name} src={rowData.profile.picture}>
+						{rowData.profile.name[0]}
+					</Avatar>
+				),
+				editComponent: props => {
+					console.log(props);
+					return (
+						<Fragment>
+							<input
+								accept="image/*"
+								id="raised-button-file"
+								type="file"
+								className={classes.uploadButton}
+								value={props.value}
+								onChange={e => props.onChange(e.target.value)}
+							/>
+
+							<label htmlFor="raised-button-file">
+								<Button variant="outlined" component="span" className={classes.button} size="small">
+									{props.value || 'upload'}
+									<CloudUploadIcon />
+								</Button>
+							</label>
+						</Fragment>
+						// <Button
+						// 	containerElement="label" // <-- Just add me!
+						// 	label="My Label"
+						// >
+						// 	<input type="file" value={props.value} onChange={e => props.onChange(e.target.value)} />
+						// </Button>
+					);
+					//<Input type="file" value={props.value} onChange={e => props.onChange(e.target.value)} />;
+				}
+			},
+			{ title: 'Name *', field: 'profile.name' },
+			{ title: 'Username *', field: 'username', editable: 'onAdd' },
+			{
+				title: 'Role *',
+				field: 'role',
+				lookup: { Admin: 'Admin', Instructor: 'Instructor', Student: 'Student' }
+			},
+			{
+				title: 'Password',
+				field: 'password',
+				render: rowData => <span>****</span>
+			},
 			{ title: 'Phone', field: 'profile.phone_number', editable: 'onUpdate' },
 			{ title: 'Gender', field: 'profile.gender', lookup: { Man: 'Man', Woman: 'Woman' } },
-			{ title: 'Role', field: 'role', lookup: { Admin: 'Admin', Instructor: 'Instructor', Student: 'Student' } }
+			{ title: 'Birthday', field: 'profile.birthday', type: 'date' },
+			{ title: 'Age', field: 'profile.age', type: 'numeric' },
+			{ title: 'Hobby', field: 'profile.hobby', type: 'string' },
+			{ title: 'Address', field: 'profile.address', type: 'string' },
+			{ title: 'Religion', field: 'profile.religion', type: 'string' },
+			{ title: 'Church', field: 'profile.church_name', type: 'string' }
 		],
 		data: []
 	});
@@ -156,7 +218,7 @@ function Users({ classes }) {
 						return <UserClassrooms classrooms={rowData.classrooms} student={rowData.id} />;
 					}}
 					options={{
-						actionsColumnIndex: -1,
+						// actionsColumnIndex: -1,
 						pageSize: 10
 					}}
 					onRowClick={(event, rowData, togglePanel) => togglePanel()}
@@ -177,7 +239,9 @@ function Users({ classes }) {
 												name: newData['profile.name'],
 												gender: newData['profile.gender']
 											},
-											role: newData.role
+											role: newData.role,
+											...(newData.password &&
+												newData.password.length > 0 && { password: newData.password })
 										}
 									})
 										.then(({ data: resolved }) => {
@@ -207,7 +271,8 @@ function Users({ classes }) {
 											gender: newData['profile.gender'],
 											phone_number: newData['profile.phone_number']
 										},
-										role: newData.role
+										role: newData.role,
+										...(newData.password.length > 0 ? { password: newData.password } : {})
 									}
 								})
 									.then(({ data: resolved }) => {
