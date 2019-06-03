@@ -25,6 +25,7 @@ import { withStyles } from '@material-ui/styles';
 import { foreground, fonts } from '../const/colors';
 import UserClassrooms from '../Organism/UserClassrooms';
 import { authority, getRolePriority, underRole } from '../const/auth';
+import avatarImg from '../static/img/default-avatar.png';
 
 function renameKeys(obj) {
 	if (typeof obj !== 'object') return obj;
@@ -86,6 +87,16 @@ function flattenRole(roleArr, key) {
 	};
 }
 
+function srcToFile(src, fileName, mimeType) {
+	return fetch(src)
+		.then(function(res) {
+			return res.arrayBuffer();
+		})
+		.then(function(buf) {
+			return new File([buf], fileName, { type: mimeType });
+		});
+}
+
 function Users({ classes }) {
 	const roleSelf = getRolePriority(localStorage.getItem('roles').split(','));
 	const availableRoles = underRole(roleSelf);
@@ -104,9 +115,19 @@ function Users({ classes }) {
 				</Avatar>
 			),
 			editComponent: ({ rowData, value, onChange, columnDef }) => {
-				const [img, setImg] = useState(rowData.profile.picture);
+				const [img, setImg] = useState(rowData ? rowData.profile.picture : avatarImg);
+				const [init, setInit] = useState(false);
+				console.log(avatarImg);
+				if (!rowData && !init) {
+					setInit(true);
+					srcToFile(avatarImg, 'default.png', 'image/png').then(file => {
+						console.log(file);
+						onChange(file);
+					});
+				}
 				function handleTempUpload(input) {
 					// onChange(input.target.value);
+					console.log(input.target.files);
 					if (input.target.files && input.target.files[0]) {
 						onChange(input.target.files[0]);
 						var reader = new FileReader();
@@ -139,8 +160,12 @@ function Users({ classes }) {
 								className={classes.button}
 								size="small"
 							>
-								<Avatar className={classes.uploadAvatar} alt={rowData.profile.name} src={img}>
-									{rowData.profile.name[0]}
+								<Avatar
+									className={classes.uploadAvatar}
+									alt={rowData ? rowData.profile.name : ''}
+									src={img}
+								>
+									{rowData ? rowData.profile.name[0] : ''}
 								</Avatar>{' '}
 								Upload
 							</Button>
@@ -149,12 +174,13 @@ function Users({ classes }) {
 				);
 			}
 		},
-		{ title: 'Name *', field: 'profile.name' },
-		{ title: 'Username *', field: 'username', editable: 'onAdd' },
+		{ title: 'Name *', field: 'profile.name', required: true },
+		{ title: 'Username *', field: 'username', editable: 'onAdd', required: true },
 		{
 			title: 'Role *',
 			field: 'role',
-			lookup: role_lookup
+			lookup: role_lookup,
+			required: true
 		},
 		{
 			title: 'Password',
@@ -253,25 +279,33 @@ function Users({ classes }) {
 					onRowClick={(event, rowData, togglePanel) => togglePanel()}
 					editable={{
 						onRowAdd: newData => {
-							if (newData.role === '' || newData.role === undefined) {
+							// if (newData.role === '' || newData.role === undefined) {
+							// 	return new Promise((_, reject) => {
+							// 		return handleCatch(reject, { response: { data: { role: '권한을 정해주세요' } } });
+							// 	});
+							// } else {
+
+							// }
+							let data = new FormData();
+							let msg = {};
+							columns.forEach(({ field, required }) => {
+								if (newData[field]) {
+									data.append(field, newData[field]);
+								} else if (required) {
+									msg[field] = '필수입력 사항입니다';
+								}
+							});
+							if (Object.keys(msg).length > 0) {
 								return new Promise((_, reject) => {
-									return handleCatch(reject, { response: { data: { role: '권한을 정해주세요' } } });
+									return handleCatch(reject, { response: { data: msg } });
 								});
 							} else {
 								return new Promise((resolve, reject) => {
 									axios({
 										method: 'post',
 										url: '/api/users/',
-										data: {
-											username: newData.username,
-											profile: {
-												name: newData['profile.name'],
-												gender: newData['profile.gender']
-											},
-											role: newData.role,
-											...(newData.password &&
-												newData.password.length > 0 && { password: newData.password })
-										}
+										headers: { 'content-type': 'multipart/form-data' },
+										data
 									})
 										.then(({ data: resolved }) => {
 											resolve({
@@ -301,23 +335,6 @@ function Users({ classes }) {
 									}
 								});
 
-								// if (newData['profile.name']) {
-								// 	data.append('profile.name', newData['profile.name']);
-								// }
-								// if (newData['profile.gender']) {
-								// 	data.append('profile.gender', newData['profile.gender']);
-								// }
-								// if (newData['profile.phone_number']) {
-								// 	data.append('profile.phone_number', newData['profile.phone_number']);
-								// }
-								// if (newData['imageUrl']) {
-								// 	data.append('profile.picture', newData['imageUrl'], newData['imageUrl'].name);
-								// }
-
-								// data.append('role', newData.role);
-								// if (newData.password && newData.password.length > 0) {
-								// 	data.append('password', newData.password);
-								// }
 								axios({
 									method: 'patch',
 									url: `/api/users/${newData.id}/`,
@@ -330,7 +347,10 @@ function Users({ classes }) {
 											...newData
 										});
 										const data = state.data;
-
+										console.log({
+											...resolved,
+											...newData
+										});
 										setState({
 											...state,
 											data: data.map(item => {
