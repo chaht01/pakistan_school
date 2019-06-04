@@ -1,5 +1,5 @@
 /* global XMLHttpRequest */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import Autosuggest from 'react-autosuggest';
@@ -9,7 +9,6 @@ import Paper from '@material-ui/core/Paper';
 import MenuItem from '@material-ui/core/MenuItem';
 import { withStyles } from '@material-ui/core/styles';
 import ChipInput from 'material-ui-chip-input';
-import { useState } from 'react';
 
 function renderInput(inputProps) {
 	const { value, onChange, chips, ...other } = inputProps;
@@ -19,14 +18,11 @@ function renderInput(inputProps) {
 function renderSuggestion(suggestion, { query, isHighlighted }) {
 	const matches = match(suggestion.profile.name, query);
 	const parts = parse(suggestion.profile.name, matches);
-	if (matches.length === 0) {
-		return null;
-	}
 	return (
 		<MenuItem
 			selected={isHighlighted}
 			component="div"
-			onMouseDown={e => e.preventDefault()} // prevent the click causing the input to be blurred
+			// onMouseDown={e => e.preventDefault()} // prevent the click causing the input to be blurred
 		>
 			<div>
 				{parts.map((part, index) => {
@@ -87,9 +83,22 @@ function ReactAutosuggestRemote(props) {
 	const { chips, setChips } = props;
 
 	const [textFieldInput, setTextFieldInput] = useState('');
-	const suggestions = props.dataSource;
+	const [suggestions, setSuggestions] = useState(props.dataSource);
+	useEffect(
+		() => {
+			setSuggestions(props.dataSource);
+		},
+		[props.dataSource]
+	);
 
-	async function handleSuggestionsFetchRequested({ value }) {}
+	async function handleSuggestionsFetchRequested({ value }) {
+		setSuggestions(
+			props.dataSource.filter(suggestion => {
+				const matches = match(suggestion.profile.name, value);
+				return matches.length > 0;
+			})
+		);
+	}
 
 	const handleSuggestionsClearRequested = () => {};
 
@@ -134,11 +143,11 @@ function ReactAutosuggestRemote(props) {
 			renderSuggestionsContainer={renderSuggestionsContainer}
 			getSuggestionValue={getSuggestionValue}
 			renderSuggestion={renderSuggestion}
-			onSuggestionSelected={(e, { suggestion }) => {
+			onSuggestionSelected={(e, { suggestion, method }) => {
 				handleAddChip(suggestion);
 				e.preventDefault();
 			}}
-			focusInputOnSuggestionClick={false}
+			focusInputOnSuggestionClick={true}
 			inputProps={{
 				classes,
 				chips,
