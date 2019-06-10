@@ -30,6 +30,16 @@ import { authority, getRolePriority, underRole } from '../const/auth';
 import avatarImg from '../static/img/default-avatar.png';
 import { format } from 'date-fns';
 
+function queryField(obj, field) {
+	const tokens = field.split('.');
+	let idx = 0;
+	let cursor = obj;
+	while (tokens[idx] !== undefined && tokens[idx] in cursor) {
+		cursor = cursor[tokens[idx++]];
+	}
+	return cursor;
+}
+
 function renameKeys(obj, { newKey = 'top', transformer = val => val } = { newKey: 'top', transformer: val => val }) {
 	if (typeof obj !== 'object') return obj;
 	const keyValues = Object.entries(obj).map(([key, value]) => {
@@ -113,7 +123,8 @@ function Users({ classes }) {
 				</Avatar>
 			),
 			editComponent: ({ rowData, value, onChange, columnDef }) => {
-				const [img, setImg] = useState(rowData ? rowData.profile.picture : avatarImg);
+				const editable = rowData && 'profile' in rowData;
+				const [img, setImg] = useState(editable ? rowData.profile.picture : avatarImg);
 				const [init, setInit] = useState(false);
 				if (!rowData && !init) {
 					setInit(true);
@@ -155,10 +166,10 @@ function Users({ classes }) {
 							>
 								<Avatar
 									className={classes.uploadAvatar}
-									alt={rowData ? rowData.profile.name : ''}
+									alt={editable ? rowData.profile.name : ''}
 									src={img}
 								>
-									{rowData ? rowData.profile.name[0] : ''}
+									{editable ? rowData.profile.name[0] : ''}
 								</Avatar>{' '}
 								Upload
 							</Button>
@@ -310,11 +321,13 @@ function Users({ classes }) {
 					onRowClick={(event, rowData, togglePanel) => togglePanel()}
 					editable={{
 						onRowAdd: newData => {
+							console.log(newData);
 							let data = new FormData();
 							let msg = {};
 							columns.forEach(({ field, format, required, transformer = value => value }) => {
-								if (newData[field] && format(newData[field])) {
-									data.append(field, transformer(newData[field]));
+								const targetValue = queryField(newData, field);
+								if (targetValue && format(targetValue)) {
+									data.append(field, transformer(targetValue));
 								} else if (required) {
 									msg[field] = '필수입력 사항입니다';
 								}
@@ -351,9 +364,10 @@ function Users({ classes }) {
 							new Promise((resolve, reject) => {
 								let data = new FormData();
 								columns.forEach(({ field, format, transformer = value => value }) => {
-									if (newData[field] && format(newData[field])) {
-										console.log(field, newData[field]);
-										data.append(field, transformer(newData[field]));
+									const targetValue = queryField(newData, field);
+									if (targetValue && format(targetValue)) {
+										console.log(field, targetValue);
+										data.append(field, transformer(targetValue));
 									}
 								});
 
