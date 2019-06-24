@@ -52,22 +52,27 @@ const ScrollableCardContent = styled(CardContent)`
 	background: #fff;
 `;
 
-function SimpleCard({ classes, id, title, lecturers, schedule, absences }) {
+function SimpleCard({ classes, id, title, lecturers, schedule, absences, students }) {
 	const { initDays, startTime, endTime } = schedule;
 	return (
 		<Card className={classes.card} component={Link} to={`/classroom/${id}`}>
 			<CardContent>
 				<Grid container spacing={3}>
 					<Grid item xs={8}>
-						<Typography className={classes.title} variant="h5">
-							{title}
+						<Typography className={classes.title} variant="h5" align={'left'}>
+							{`${title} (${students.length})`}
 						</Typography>
-						<Typography className={classes.lecturer} color="textSecondary" gutterBottom={true}>
+						<Typography
+							className={classes.lecturer}
+							color="textSecondary"
+							gutterBottom={true}
+							align={'left'}
+						>
 							{lecturers.map(lecturer => <Box>{lecturer.profile.name}</Box>)}
 						</Typography>
 					</Grid>
 					<Grid item xs={4}>
-						<Typography variant="button">
+						<Typography variant="button" align={'left'}>
 							<Box textAlign="right">{`${startTime} ~ ${endTime}`}</Box>
 						</Typography>
 					</Grid>
@@ -77,12 +82,14 @@ function SimpleCard({ classes, id, title, lecturers, schedule, absences }) {
 						<AttendBullet
 							states={initDays.map(day => (day === 1 ? attendance.scheduled : attendance.none))}
 							mask={scheduleMask}
+							withWeekDays
 						/>
 					</Grid>
 					<Grid className={classes.gridItems} item xs={6}>
 						<AttendBullet
 							states={initDays.map(day => (day === 1 ? attendance.scheduled : attendance.none))}
 							mask={scheduleMask}
+							withWeekDays
 						/>
 					</Grid>
 				</Grid>

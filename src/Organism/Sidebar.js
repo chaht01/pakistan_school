@@ -10,6 +10,11 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import IconButton from '@material-ui/core/IconButton';
+import ListItemAvatar from '@material-ui/core/ListItemAvatar';
+import Avatar from '@material-ui/core/Avatar';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import SettingsIcon from '@material-ui/icons/Settings';
+import { getAsyncRole } from '../const/auth';
 
 const styles = {
 	list: {
@@ -49,8 +54,35 @@ function Sidebar({ routes, classes }) {
 
 	const sideList = (
 		<AuthConsumer>
-			{({ validateAuth }) => (
+			{({ validateAuth, savedUser, savedRole }) => (
 				<div className={classes.list}>
+					{savedUser && (
+						<Fragment>
+							<List>
+								<ListItem>
+									<ListItemAvatar>
+										<Avatar src={savedUser.profile.picture}>{savedUser.profile.name[0]}</Avatar>
+									</ListItemAvatar>
+									<ListItemText
+										primary={savedUser.profile.name}
+										secondary={getAsyncRole[savedRole]}
+									/>
+									<ListItemSecondaryAction>
+										<IconButton
+											edge="end"
+											aria-label="Delete"
+											component={Link}
+											to={`/users/${savedUser.username}/edit`}
+										>
+											<SettingsIcon />
+										</IconButton>
+									</ListItemSecondaryAction>
+								</ListItem>
+							</List>
+							<Divider />
+						</Fragment>
+					)}
+
 					{indexRoutes.map((routes, i_index, originArr) => (
 						<Fragment key={i_index}>
 							<List>

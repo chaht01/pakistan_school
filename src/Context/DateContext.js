@@ -7,6 +7,8 @@ const DateContext = React.createContext();
 
 function DateProvider({ children }) {
 	const [globalNow, handleGlobalNow] = useState(new Date());
+	const [load, setLoad] = useState(false);
+
 	const setToday = () => handleGlobalNow(new Date());
 	const prevWeek = () => {
 		handleGlobalNow(subDays(globalNow, 7));
@@ -14,6 +16,8 @@ function DateProvider({ children }) {
 	const nextWeek = () => {
 		handleGlobalNow(addDays(globalNow, 7));
 	};
+	const startLoad = () => {};
+	const endLoad = () => {};
 	return (
 		<DateContext.Provider
 			value={{

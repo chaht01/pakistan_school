@@ -67,8 +67,13 @@ function AuthProvider({ children }) {
 		}
 	};
 	const logout = () => fail();
+	console.log(savedUser);
 	return (
-		<AuthContext.Provider value={{ authState: auth, validateAuth, login, logout }}>{children}</AuthContext.Provider>
+		<AuthContext.Provider
+			value={{ authState: auth, validateAuth, login, logout, savedUser: JSON.parse(savedUser), savedRole }}
+		>
+			{children}
+		</AuthContext.Provider>
 	);
 }
 

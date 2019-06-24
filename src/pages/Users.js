@@ -1,9 +1,11 @@
 import React, { useState, useEffect, Fragment } from 'react';
+import { withRouter } from 'react-router';
 import Avatar from '@material-ui/core/Avatar';
+import { AuthConsumer } from '../Context/AuthContext';
 import Input from '@material-ui/core/Input';
 import Hidden from '@material-ui/core/Hidden';
 import Button from '@material-ui/core/Button';
-import MaterialTable, { MTableToolbar, MTableHeader } from 'material-table';
+import MaterialTable, { MTableToolbar, MTableHeader, MTableBody } from 'material-table';
 import MTableEditRow from '../Organism/MTableEditRow';
 import MTableBodyRow from '../Organism/MTableBodyRow';
 import Snackbar from '@material-ui/core/Snackbar';
@@ -104,10 +106,12 @@ function srcToFile(src, fileName, mimeType) {
 		});
 }
 
-function Users({ classes }) {
+function Users({ classes, match, history }) {
+	const { params: { query, action }, path } = match;
+	console.log(query, action, match);
 	const roleSelf = getRolePriority(localStorage.getItem('roles').split(','));
 	const availableRoles = underRole(roleSelf);
-	let role_lookup = availableRoles.reduce(function(acc, cur) {
+	let role_lookup = underRole(roleSelf, true).reduce(function(acc, cur) {
 		acc[cur] = cur;
 		return acc;
 	}, {});
@@ -269,173 +273,242 @@ function Users({ classes }) {
 		reject(messages);
 	}
 	return (
-		<div className={classes.root}>
-			<main className={classes.main}>
-				<MaterialTable
-					title="Users"
-					columns={state.columns}
-					data={state.data.filter(person => availableRoles.indexOf(person.role) > -1)}
-					components={{
-						Toolbar: props => (
-							<div className={classes.toolbar}>
-								<MTableToolbar {...props} />
-							</div>
-						),
-						EditRow: props => <MTableEditRow {...props} />,
-						Row: props => <MTableBodyRow {...props} />
-					}}
-					icons={{
-						Add: AddBoxIcon,
-						Delete: DeleteOutlineIcon,
-						Edit: EditIcon,
-						Check: DoneIcon,
-						Filter: FilterListIcon,
-						FirstPage: FirstPageIcon,
-						LastPage: LastPageIcon,
-						PreviousPage: ChevronLeftIcon,
-						NextPage: ChevronRightIcon,
-						Search: SearchIcon,
-						ResetSearch: ClearIcon,
-						Clear: ClearIcon,
-						DetailPanel: ChevronRightIcon,
-						ViewColumn: ViewColumnIcon
-					}}
-					detailPanel={rowData => {
-						return <UserClassrooms classrooms={rowData.classrooms} student={rowData.id} />;
-					}}
-					options={{
-						columnsButton: true,
-						pageSize: 10,
-						addRowPosition: 'first',
-						detailCellStyle: {
-							background: '#fff'
-						},
-						actionsCellStyle: {
-							position: 'sticky',
-							left: 0,
-							zIndex: 99,
-							background: '#fff',
-							boxShadow: `1px 0px 0px 0px ${foreground.gray}`
-						}
-					}}
-					onRowClick={(event, rowData, togglePanel) => togglePanel()}
-					editable={{
-						onRowAdd: newData => {
-							console.log(newData);
-							let data = new FormData();
-							let msg = {};
-							columns.forEach(({ field, format, required, transformer = value => value }) => {
-								const targetValue = queryField(newData, field);
-								if (targetValue && format(targetValue)) {
-									data.append(field, transformer(targetValue));
-								} else if (required) {
-									msg[field] = '필수입력 사항입니다';
-								}
-							});
-							if (Object.keys(msg).length > 0) {
-								return new Promise((_, reject) => {
-									return handleCatch(reject, { response: { data: msg } });
-								});
-							} else {
-								return new Promise((resolve, reject) => {
-									axios({
-										method: 'post',
-										url: '/api/users/',
-										headers: { 'content-type': 'multipart/form-data' },
-										data
-									})
-										.then(({ data: resolved }) => {
-											resolve({
-												...newData,
-												...resolved
-											});
-											const data = state.data;
-											data.push({
-												...newData,
-												...resolved
-											});
-											setState({ ...state, data });
-										})
-										.catch(handleCatch.bind(this, reject));
-								});
-							}
-						},
-						onRowUpdate: (newData, oldData) =>
-							new Promise((resolve, reject) => {
-								let data = new FormData();
-								columns.forEach(({ field, format, transformer = value => value }) => {
-									const targetValue = queryField(newData, field);
-									if (targetValue && format(targetValue)) {
-										console.log(field, targetValue);
-										data.append(field, transformer(targetValue));
-									}
-								});
+		<AuthConsumer>
+			{({ validateAuth, savedUser, savedRole }) => (
+				<div className={classes.root}>
+					<main className={classes.main}>
+						<MaterialTable
+							title="Users"
+							columns={state.columns}
+							data={state.data.filter(
+								person =>
+									availableRoles.indexOf(person.role) > -1 || savedUser.username === person.username
+							)}
+							components={{
+								// Body: props => {
+								// 	console.log(props);
+								//   console.log('comp');
+								// 	const [dirty, setDirty] = useState(false);
+								// 	const [state, setState] = useState(props);
+								// 	const onEditingCanceled = (...args) => {
+								// 		setDirty(true);
+								// 		props.onEditingCanceled(...args);
+								// 		history.push(`/users/`);
+								// 	};
+								// 	const onEditingApproved = (...args) => {
+								// 		setDirty(true);
+								// 		props.onEditingApproved(...args);
+								// 		history.push(`/users/`);
+								// 	};
+								// 	useEffect(() => {
+								// 		console.log('effect');
+								// 		if (action === 'edit') {
+								// 			setState({
+								// 				...state,
+								// 				renderData: state.renderData.map((data, index) => ({
+								// 					...data,
+								// 					tableData: {
+								// 						...data.tableData,
+								// 						editing: 'update'
+								// 					}
+								// 				}))
+								// 			});
+								// 		}
+								// 	}, []);
 
-								axios({
-									method: 'patch',
-									url: `/api/users/${newData.id}/`,
-									headers: { 'content-type': 'multipart/form-data' },
-									data
-								})
-									.then(({ data: resolved }) => {
-										resolve({
-											...newData,
-											...resolved
+								// 	if (dirty || action !== 'edit') {
+								// 		return (
+								// 			<MTableBody
+								// 				{...props}
+								// 				onEditingCanceled={onEditingCanceled}
+								// 				onEditingApproved={onEditingApproved}
+								// 			/>
+								// 		);
+								// 	} else {
+								// 		return (
+								// 			<MTableBody
+								// 				{...state}
+								// 				onEditingCanceled={onEditingCanceled}
+								// 				onEditingApproved={onEditingApproved}
+								// 			/>
+								// 		);
+								// 	}
+								// },
+								Toolbar: props => {
+									const [dirty, setDirty] = useState(false);
+									useEffect(() => {
+										if (dirty === false) props.onSearchChanged(props.searchText || query);
+										setDirty(true);
+									}, []);
+									return (
+										<div className={classes.toolbar}>
+											<MTableToolbar
+												{...props}
+												onChange={event => {
+													props.onSearchChanged(event.target.value);
+												}}
+												searchText={dirty ? props.searchText : props.searchText || query}
+											/>
+										</div>
+									);
+								},
+								EditRow: props => <MTableEditRow {...props} />,
+								Row: props => <MTableBodyRow {...props} />
+							}}
+							icons={{
+								Add: AddBoxIcon,
+								Delete: DeleteOutlineIcon,
+								Edit: EditIcon,
+								Check: DoneIcon,
+								Filter: FilterListIcon,
+								FirstPage: FirstPageIcon,
+								LastPage: LastPageIcon,
+								PreviousPage: ChevronLeftIcon,
+								NextPage: ChevronRightIcon,
+								Search: SearchIcon,
+								ResetSearch: ClearIcon,
+								Clear: ClearIcon,
+								DetailPanel: ChevronRightIcon,
+								ViewColumn: ViewColumnIcon
+							}}
+							detailPanel={rowData => {
+								return <UserClassrooms classrooms={rowData.classrooms} student={rowData.id} />;
+							}}
+							options={{
+								columnsButton: true,
+								pageSize: 10,
+								addRowPosition: 'first',
+								detailCellStyle: {
+									background: '#fff'
+								},
+								actionsCellStyle: {
+									position: 'sticky',
+									left: 0,
+									zIndex: 99,
+									background: '#fff',
+									boxShadow: `1px 0px 0px 0px ${foreground.gray}`
+								}
+							}}
+							onRowClick={(event, rowData, togglePanel) => togglePanel()}
+							editable={{
+								onRowAdd: newData => {
+									console.log(newData);
+									let data = new FormData();
+									let msg = {};
+									columns.forEach(({ field, format, required, transformer = value => value }) => {
+										const targetValue = queryField(newData, field);
+										if (targetValue && format(targetValue)) {
+											data.append(field, transformer(targetValue));
+										} else if (required) {
+											msg[field] = '필수입력 사항입니다';
+										}
+									});
+									if (Object.keys(msg).length > 0) {
+										return new Promise((_, reject) => {
+											return handleCatch(reject, { response: { data: msg } });
 										});
-										const data = state.data;
-										console.log({
-											...newData,
-											...resolved
-										});
-										setState({
-											...state,
-											data: data.map(item => {
-												if (item.id === newData.id) {
-													return {
+									} else {
+										return new Promise((resolve, reject) => {
+											axios({
+												method: 'post',
+												url: '/api/users/',
+												headers: { 'content-type': 'multipart/form-data' },
+												data
+											})
+												.then(({ data: resolved }) => {
+													resolve({
 														...newData,
 														...resolved
-													};
-												}
-												return item;
+													});
+													const data = state.data;
+													data.push({
+														...newData,
+														...resolved
+													});
+													setState({ ...state, data });
+												})
+												.catch(handleCatch.bind(this, reject));
+										});
+									}
+								},
+								onRowUpdate: (newData, oldData) =>
+									new Promise((resolve, reject) => {
+										let data = new FormData();
+										columns.forEach(({ field, format, transformer = value => value }) => {
+											const targetValue = queryField(newData, field);
+											if (targetValue && format(targetValue)) {
+												console.log(field, targetValue);
+												data.append(field, transformer(targetValue));
+											}
+										});
+
+										axios({
+											method: 'patch',
+											url: `/api/users/${newData.id}/`,
+											headers: { 'content-type': 'multipart/form-data' },
+											data
+										})
+											.then(({ data: resolved }) => {
+												resolve({
+													...newData,
+													...resolved
+												});
+												const data = state.data;
+												console.log({
+													...newData,
+													...resolved
+												});
+												setState({
+													...state,
+													data: data.map(item => {
+														if (item.id === newData.id) {
+															return {
+																...newData,
+																...resolved
+															};
+														}
+														return item;
+													})
+												});
 											})
-										});
+											.catch(handleCatch.bind(this, reject));
+									}),
+								onRowDelete: oldData =>
+									new Promise((resolve, reject) => {
+										axios({
+											method: 'delete',
+											url: `/api/users/${oldData.id}/`
+										})
+											.then(({ data: resolved }) => {
+												const data = state.data;
+												setState({
+													...state,
+													data: data.filter(item => item.id !== oldData.id)
+												});
+												resolve();
+											})
+											.catch(handleCatch.bind(this, reject));
 									})
-									.catch(handleCatch.bind(this, reject));
-							}),
-						onRowDelete: oldData =>
-							new Promise((resolve, reject) => {
-								axios({
-									method: 'delete',
-									url: `/api/users/${oldData.id}/`
-								})
-									.then(({ data: resolved }) => {
-										const data = state.data;
-										setState({
-											...state,
-											data: data.filter(item => item.id !== oldData.id)
-										});
-										resolve();
-									})
-									.catch(handleCatch.bind(this, reject));
-							})
-					}}
-				/>
-			</main>
-			<Snackbar
-				open={error.value}
-				onClose={onCloseError}
-				TransitionComponent={Slide}
-				ContentProps={{
-					'aria-describedby': 'message-id'
-				}}
-				message={<span id="message-id">{error.message}</span>}
-				action={[
-					<IconButton key="close" aria-label="Close" color="inherit" onClick={onCloseError}>
-						<CloseIcon />
-					</IconButton>
-				]}
-			/>
-		</div>
+							}}
+						/>
+					</main>
+					<Snackbar
+						open={error.value}
+						onClose={onCloseError}
+						TransitionComponent={Slide}
+						ContentProps={{
+							'aria-describedby': 'message-id'
+						}}
+						message={<span id="message-id">{error.message}</span>}
+						action={[
+							<IconButton key="close" aria-label="Close" color="inherit" onClick={onCloseError}>
+								<CloseIcon />
+							</IconButton>
+						]}
+					/>
+				</div>
+			)}
+		</AuthConsumer>
 	);
 }
-export default withStyles(styles)(Users);
+export default withRouter(withStyles(styles)(Users));

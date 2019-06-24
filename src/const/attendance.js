@@ -9,7 +9,7 @@ export const asyncAttendance = {
 };
 
 export const attendance = {
-	attended: 'ATTENDANCE/ATTENDTED',
+	attended: 'ATTENDANCE/ATTENDED',
 	none: 'ATTENDANCE/NONE',
 	scheduled: 'ATTENDANCE/SCHEDULED',
 	absence: 'ATTENDANCE/ABSENCE',
@@ -117,7 +117,7 @@ export class AttStat {
 
 	dateToString() {
 		if (this._stat === attendance.late) {
-			return this._data.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+			return this._data.date.toLocaleTimeString(['en-US'], { hour: '2-digit', minute: '2-digit', hour12: true });
 		} else if (this._stat === attendance.makeup) {
 			return `${this._data.date.toLocaleString('en-us', {
 				month: 'long'

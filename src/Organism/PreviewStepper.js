@@ -85,7 +85,8 @@ function PreviewStepper({ classes, width, classInfo = [] }) {
 						index={activeStep}
 						onChangeIndex={handleStepChange}
 						springConfig={{ duration: '.5s', easeFunction: 'ease-in-out', delay: '0s' }}
-						interval={5000000}
+						style={{ width: '100%' }}
+						interval={3000}
 						enableMouseEvents
 					>
 						{groupedClass.map((group, index) => (
@@ -97,6 +98,7 @@ function PreviewStepper({ classes, width, classInfo = [] }) {
 											id={cls.id}
 											title={cls.name}
 											lecturers={cls.instructors}
+											students={cls.students}
 											schedule={cls.schedule}
 											absences={cls.absences}
 										/>
@@ -109,6 +111,7 @@ function PreviewStepper({ classes, width, classInfo = [] }) {
 						steps={maxSteps}
 						position="static"
 						activeStep={activeStep}
+						style={{ width: '100%' }}
 						nextButton={
 							<Button size="small" onClick={handleNext} disabled={activeStep === maxSteps - 1}>
 								Next<KeyboardArrowRight />
