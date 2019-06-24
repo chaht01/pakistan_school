@@ -1,7 +1,7 @@
 import React, { Fragment, useState, useEffect } from 'react';
 import { styled as styledUI } from '@material-ui/styles';
 import styled from 'styled-components';
-import { withStyles } from '@material-ui/core/styles';
+import { withStyles, createMuiTheme } from '@material-ui/core/styles';
 import { foreground } from '../const/colors';
 import Card from '@material-ui/core/Card';
 import Statbar from '../Organism/Statbar';
@@ -16,6 +16,7 @@ import format from 'date-fns/format';
 import { DateConsumer } from '../Context/DateContext';
 import axios from 'axios';
 
+const defaultTheme = createMuiTheme();
 const Carousel = styled.div`
 	height: 100%;
 	padding: 150px 30px 0;
@@ -35,18 +36,18 @@ Carousel.Item = styledUI(Card)({
 
 const styles = theme => ({
 	formControl: {
-		margin: theme.spacing(1),
+		margin: defaultTheme.spacing(1),
 		width: '100%',
-		[theme.breakpoints.down('sm')]: {
+		[defaultTheme.breakpoints.down('sm')]: {
 			maxWidth: 120
 		},
-		[theme.breakpoints.up('sm')]: {
+		[defaultTheme.breakpoints.up('sm')]: {
 			maxWidth: 200
 		},
-		[theme.breakpoints.up('md')]: {
+		[defaultTheme.breakpoints.up('md')]: {
 			maxWidth: 200
 		},
-		[theme.breakpoints.up('lg')]: {
+		[defaultTheme.breakpoints.up('lg')]: {
 			maxWidth: 200
 		}
 	}

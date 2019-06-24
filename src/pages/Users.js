@@ -25,7 +25,7 @@ import SearchIcon from '@material-ui/icons/Search';
 import ClearIcon from '@material-ui/icons/Clear';
 import ViewColumnIcon from '@material-ui/icons/ViewColumn';
 import axios from 'axios';
-import { withStyles, createStyles } from '@material-ui/styles';
+import { withStyles, createMuiTheme } from '@material-ui/core/styles';
 import { foreground, fonts } from '../const/colors';
 import UserClassrooms from '../Organism/UserClassrooms';
 import { authority, getRolePriority, underRole } from '../const/auth';
@@ -54,11 +54,13 @@ function renameKeys(obj, { newKey = 'top', transformer = val => val } = { newKey
 	return Object.assign({}, ...keyValues);
 }
 
+const defaultTheme = createMuiTheme();
+
 const styles = theme => ({
 	root: {
 		backgroundColor: foreground.lightGreenGray,
-		paddingTop: theme.spacing(8),
-		paddingBottom: theme.spacing(8),
+		paddingTop: defaultTheme.spacing(8),
+		paddingBottom: defaultTheme.spacing(8),
 		minHeight: '100%'
 	},
 	toolbar: {
@@ -66,14 +68,14 @@ const styles = theme => ({
 		zIndex: 100,
 		background: '#fff',
 		borderBottom: `1px solid ${foreground.gray}`,
-		...renameKeys(theme.mixins.toolbar)
+		...renameKeys(defaultTheme.mixins.toolbar)
 	},
 	main: {
 		width: 'auto',
 		display: 'block', // Fix IE 11 issue.
-		marginLeft: theme.spacing(3),
-		marginRight: theme.spacing(3),
-		[theme.breakpoints.up(900 + theme.spacing(3 * 2))]: {
+		marginLeft: defaultTheme.spacing(3),
+		marginRight: defaultTheme.spacing(3),
+		[defaultTheme.breakpoints.up(900 + defaultTheme.spacing(3 * 2))]: {
 			width: 900,
 			marginLeft: 'auto',
 			marginRight: 'auto'

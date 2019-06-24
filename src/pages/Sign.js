@@ -13,38 +13,39 @@ import InputLabel from '@material-ui/core/InputLabel';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
-import withStyles from '@material-ui/core/styles/withStyles';
+import { withStyles, createMuiTheme } from '@material-ui/core/styles';
 import { authority, defaultRoute } from '../const/auth';
 
+const defaultTheme = createMuiTheme();
 const styles = theme => ({
 	main: {
 		width: 'auto',
 		display: 'block', // Fix IE 11 issue.
-		marginLeft: theme.spacing(3),
-		marginRight: theme.spacing(3),
-		[theme.breakpoints.up(400 + theme.spacing(3 * 2))]: {
+		marginLeft: defaultTheme.spacing(3),
+		marginRight: defaultTheme.spacing(3),
+		[defaultTheme.breakpoints.up(400 + defaultTheme.spacing(3 * 2))]: {
 			width: 400,
 			marginLeft: 'auto',
 			marginRight: 'auto'
 		}
 	},
 	paper: {
-		marginTop: theme.spacing(8),
+		marginTop: defaultTheme.spacing(8),
 		display: 'flex',
 		flexDirection: 'column',
 		alignItems: 'center',
-		padding: `${theme.spacing(2)}px ${theme.spacing(3)}px ${theme.spacing(3)}px`
+		padding: `${defaultTheme.spacing(2)}px ${defaultTheme.spacing(3)}px ${defaultTheme.spacing(3)}px`
 	},
 	avatar: {
-		margin: theme.spacing(1),
-		backgroundColor: theme.palette.secondary.main
+		margin: defaultTheme.spacing(1),
+		backgroundColor: defaultTheme.palette.secondary.main
 	},
 	form: {
 		width: '100%', // Fix IE 11 issue.
-		marginTop: theme.spacing(1)
+		marginTop: defaultTheme.spacing(1)
 	},
 	submit: {
-		marginTop: theme.spacing(3)
+		marginTop: defaultTheme.spacing(3)
 	}
 });
 

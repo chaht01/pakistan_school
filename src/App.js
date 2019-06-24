@@ -9,6 +9,7 @@ import ClassMoreController from './Organism/ClassMoreController';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import SchoolIcon from '@material-ui/icons/School';
 import GroupIcon from '@material-ui/icons/Group';
+import ShowChartIcon from '@material-ui/icons/ShowChart';
 import ContactsICon from '@material-ui/icons/Contacts';
 import GlobalStyle from './global.css';
 import ClassRoom from './pages/ClassRoom';
@@ -19,8 +20,11 @@ import { makeStyles } from '@material-ui/styles';
 import { authority, defaultRoute } from './const/auth';
 import OpenClass from './pages/OpenClass';
 import ManageClass from './pages/ManageClass';
+import Statistics from './pages/Statistics';
 import { DateConsumer } from './Context/DateContext';
+import { createMuiTheme } from '@material-ui/core/styles';
 
+const defaultTheme = createMuiTheme();
 function renameKeys(obj) {
 	if (typeof obj !== 'object') return obj;
 	const keyValues = Object.entries(obj).map(([key, value]) => {
@@ -35,13 +39,13 @@ function renameKeys(obj) {
 
 const styles = theme => {
 	return {
-		appBarSpacer: theme.mixins.toolbar,
+		appBarSpacer: defaultTheme.mixins.toolbar,
 		container: {
 			display: 'flex',
 			flexDirection: 'column',
 			height: '100%'
 		},
-		appBarContent: renameKeys(theme.mixins.toolbar)
+		appBarContent: renameKeys(defaultTheme.mixins.toolbar)
 	};
 };
 
@@ -86,6 +90,17 @@ function App({ classes }) {
 			icon: <ContactsICon />,
 			sidebar: () => <Fragment>Users</Fragment>,
 			main: () => <Users />,
+			sidebarIndex: 0
+		},
+		{
+			path: '/statistics/',
+			to: '/statistics',
+			private: true,
+			exact: false,
+			auth: [authority.ADMIN],
+			icon: <ShowChartIcon />,
+			sidebar: () => <Fragment>Statistics</Fragment>,
+			main: () => <Statistics />,
 			sidebarIndex: 0
 		},
 		{

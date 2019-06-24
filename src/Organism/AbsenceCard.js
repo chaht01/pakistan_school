@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
+import { withStyles, createMuiTheme } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
@@ -15,6 +15,8 @@ import { attendance, scheduleMask } from '../const/attendance';
 import Box from '@material-ui/core/Box';
 import { Link } from 'react-router-dom';
 
+const defaultTheme = createMuiTheme();
+
 const styles = theme => ({
 	card: {
 		minWidth: 275,
@@ -24,7 +26,7 @@ const styles = theme => ({
 		margin: '30px 0',
 		textDecoration: 'none',
 		'&:hover': {
-			boxShadow: theme.shadows[4]
+			boxShadow: defaultTheme.shadows[4]
 		}
 	},
 	title: {

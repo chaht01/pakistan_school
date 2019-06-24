@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react';
 import { withRouter } from 'react-router';
-import { withStyles } from '@material-ui/styles';
+import { withStyles, createMuiTheme } from '@material-ui/core/styles';
 import IconButton from '@material-ui/core/IconButton';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import Hidden from '@material-ui/core/Hidden';
@@ -13,9 +13,11 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Typography from '@material-ui/core/Typography';
 import { Link } from 'react-router-dom';
 
+const defaultTheme = createMuiTheme();
+
 const styles = theme => ({
 	addIcon: {
-		marginRight: theme.spacing(1)
+		marginRight: defaultTheme.spacing(1)
 	}
 });
 

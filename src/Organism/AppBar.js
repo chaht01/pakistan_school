@@ -2,7 +2,7 @@ import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 import { AuthConsumer } from '../Context/AuthContext';
-import { withStyles } from '@material-ui/core/styles';
+import { withStyles, createMuiTheme } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -11,6 +11,7 @@ import Sidebar from '../Organism/Sidebar';
 import { authority } from '../const/auth';
 import Grid from '@material-ui/core/Grid';
 
+const defaultTheme = createMuiTheme();
 const styles = theme => ({
 	grow: {
 		flexGrow: 1
@@ -18,10 +19,10 @@ const styles = theme => ({
 	appBarButtonGroup: {
 		width: 'auto',
 		'&>*': {
-			marginLeft: theme.spacing(2),
+			marginLeft: defaultTheme.spacing(2),
 
-			[theme.breakpoints.down('sm')]: {
-				marginLeft: theme.spacing(1)
+			[defaultTheme.breakpoints.down('sm')]: {
+				marginLeft: defaultTheme.spacing(1)
 			}
 		}
 	}

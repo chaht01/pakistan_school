@@ -2,7 +2,9 @@ import React, { Fragment } from 'react';
 import styled from 'styled-components';
 import { foreground } from '../const/colors';
 import { base } from '../const/size';
-import { withStyles } from '@material-ui/core/styles';
+import { withStyles, createMuiTheme } from '@material-ui/core/styles';
+
+const defaultTheme = createMuiTheme();
 
 function SubGenerativeComponent({ classes, children, ...rest }) {
 	return (
@@ -93,7 +95,7 @@ const SubContentStyles = theme => ({
 		padding: `${base.subbar}px 0px 0`,
 		background: '#fff'
 	},
-	dummy: theme.mixins.toolbar
+	dummy: defaultTheme.mixins.toolbar
 });
 
 const SubContent = withStyles(SubContentStyles)(SubGenerativeComponent);
