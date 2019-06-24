@@ -56,6 +56,7 @@ const styles = theme => ({
 			opacity: 0.5
 		}
 	},
+	statInfo: {},
 	scheduled: {
 		backgroundColor: colorMatcher(attendance.scheduled, 0.6, scheduleMask),
 		color: fonts.white
@@ -155,7 +156,10 @@ function Calendar({ classes, absences = [], classroom, classrooms, startDate, en
 	return (
 		<ThemeProvider theme={theme}>
 			<Paper elevation={2} square={true} className={classes.weekDaysHeader}>
-				<Grid container className={classes.weekDay} />
+				<Grid container alignContent="center" justify="center" className={classes.weekDay}>
+					<Hidden smDown>{`Total students: `}</Hidden>
+					{`${absences.length}`}
+				</Grid>
 				{weekdays.map((wd, offset) => {
 					let date = new Date(startDate);
 					date.setDate(startDate.getDate() + offset);

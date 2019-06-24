@@ -19,13 +19,21 @@ export const getRolePriority = roles => {
 	return priority[roles.map(role => priority.indexOf(role)).reduce((acc, curr) => (acc > curr ? curr : acc))];
 };
 
-export const underRole = role => {
-	console.log(role);
+export const getAsyncRole = {
+	[authority.UNAUTH]: 'Unauthorized',
+	[authority.AUTH]: 'Authorized',
+	[authority.ADMIN]: 'Admin',
+	[authority.INSTRUCTOR]: 'Instructor',
+	[authority.STUDENT]: 'Student'
+};
+
+export const underRole = (role, selfInclusive) => {
 	const priority = ['Admin', 'Instructor', 'Student'];
 	let found = false;
 	return priority.filter(item => {
 		if (item === role) {
 			found = true;
+			if (!selfInclusive) return false;
 		}
 		if (found) return true;
 		return false;

@@ -9,7 +9,7 @@ export const foreground = {
 	cobalt: '#6c74f7',
 	purple: '#6e4486',
 	yellow: '#f2b32a',
-	red: '#df422b'
+	red: '#ff391c'
 };
 
 export function hover(color) {
@@ -20,7 +20,7 @@ export function hover(color) {
 			return '#5a3a70'; // purple
 		case '#f2b32a':
 			return '#ce9228'; // yellow
-		case '#df422b':
+		case '#ff391c':
 			return '#b73225'; // red
 		default:
 			return color;
@@ -32,5 +32,5 @@ export const fonts = {
 	gray: '#aaaaaa',
 	black: '#333333',
 	white: '#ffffff',
-	red: '#df422b'
+	red: '#ff391c'
 };

@@ -61,8 +61,8 @@ function App({ classes }) {
 			sidebarIndex: 0
 		},
 		{
-			path: ['/classroom/:classId', '/classroom/'],
-			to: '/classroom/',
+			path: ['/classroom/:classId', '/classroom'],
+			to: '/classroom',
 			private: true,
 			exact: false,
 			auth: [authority.ADMIN, authority.INSTRUCTOR],
@@ -78,10 +78,10 @@ function App({ classes }) {
 			sidebarIndex: 0
 		},
 		{
-			path: '/users',
+			path: ['/users/:query/:action', '/users/:query', '/users'],
 			to: '/users',
 			private: true,
-			exact: true,
+			exact: false,
 			auth: [authority.ADMIN, authority.INSTRUCTOR],
 			icon: <ContactsICon />,
 			sidebar: () => <Fragment>Users</Fragment>,
