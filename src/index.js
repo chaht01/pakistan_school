@@ -8,7 +8,7 @@ import { foreground } from './const/colors';
 import { AuthProvider } from './Context/AuthContext';
 import { DateProvider } from './Context/DateContext';
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
-import { withStyles, StylesProvider, createGenerateClassName } from '@material-ui/styles';
+import { StylesProvider, createGenerateClassName } from '@material-ui/styles';
 import DateFnsUtils from '@date-io/date-fns';
 const generateClassName = createGenerateClassName({
 	productionPrefix: 'mt'

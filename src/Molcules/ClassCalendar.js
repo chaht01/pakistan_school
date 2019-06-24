@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { withStyles, makeStyles } from '@material-ui/styles';
+import { withStyles, makeStyles } from '@material-ui/core/styles';
 import { Calendar, Day } from '@material-ui/pickers';
 import axios from 'axios';
 import chroma from 'chroma-js';
