@@ -48,7 +48,7 @@ function renameKeys(obj, { newKey = 'top', transformer = val => val } = { newKey
 		if (key === 'minHeight') {
 			return { [newKey]: transformer(value) };
 		} else {
-			return { [key]: renameKeys(value) };
+			return { [key]: renameKeys(value, { newKey, transformer }) };
 		}
 	});
 	return Object.assign({}, ...keyValues);
