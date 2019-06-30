@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { withStyles } from '@material-ui/core';
 import withWidth, { isWidthUp, isWidthDown } from '@material-ui/core/withWidth';
 import { foreground } from '../const/colors';
 import Backbone from '../Molcules/Backbone';
-import AbsenceCounter from '../Organism/AbsenceCounter';
-import { createMuiTheme, responsiveFontSizes } from '@material-ui/core/styles';
-import { ThemeProvider } from '@material-ui/styles';
+import { createMuiTheme, responsiveFontSizes, withStyles, MuiThemeProvider } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Container from '@material-ui/core/Container';
@@ -130,7 +127,7 @@ function Statbar({ classes, width, adornment, building = -1, classroom = -1, chi
 	);
 
 	return (
-		<ThemeProvider theme={theme}>
+		<MuiThemeProvider theme={theme}>
 			<Backbone
 				header={
 					<Grid container justify="space-between" alignItems="center" className={classes.statBar}>
@@ -180,7 +177,7 @@ function Statbar({ classes, width, adornment, building = -1, classroom = -1, chi
 				content={children}
 				space={space}
 			/>
-		</ThemeProvider>
+		</MuiThemeProvider>
 	);
 }
 

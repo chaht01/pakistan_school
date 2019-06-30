@@ -7,7 +7,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Checkbox from '@material-ui/core/Checkbox';
 import Tooltip from '@material-ui/core/Tooltip';
 import FormGroup from '@material-ui/core/FormGroup';
-import { withStyles } from '@material-ui/styles';
+import { withStyles } from '@material-ui/core/styles';
 import { foreground } from '../const/colors';
 import { SizeMe } from 'react-sizeme';
 
