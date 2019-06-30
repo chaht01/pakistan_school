@@ -1,7 +1,7 @@
 import React, { Fragment, useState } from 'react';
 import { AuthConsumer } from './Context/AuthContext';
 import { BrowserRouter as Router, Route, Redirect } from 'react-router-dom';
-import { withStyles, StylesProvider, createGenerateClassName } from '@material-ui/styles';
+import { withStyles } from '@material-ui/core/styles';
 import Dashboard from './pages/Dashboard';
 import Sign from './pages/Sign';
 import DateController from './Organism/DateController';
@@ -9,18 +9,21 @@ import ClassMoreController from './Organism/ClassMoreController';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import SchoolIcon from '@material-ui/icons/School';
 import GroupIcon from '@material-ui/icons/Group';
+import ShowChartIcon from '@material-ui/icons/ShowChart';
 import ContactsICon from '@material-ui/icons/Contacts';
 import GlobalStyle from './global.css';
 import ClassRoom from './pages/ClassRoom';
 import Users from './pages/Users';
 import { attendance, AttStat } from './const/attendance';
 import AppBar from './Organism/AppBar';
-import { makeStyles } from '@material-ui/styles';
 import { authority, defaultRoute } from './const/auth';
 import OpenClass from './pages/OpenClass';
 import ManageClass from './pages/ManageClass';
+import Statistics from './pages/Statistics';
 import { DateConsumer } from './Context/DateContext';
+import { createMuiTheme } from '@material-ui/core/styles';
 
+const defaultTheme = createMuiTheme();
 function renameKeys(obj) {
 	if (typeof obj !== 'object') return obj;
 	const keyValues = Object.entries(obj).map(([key, value]) => {
@@ -35,13 +38,13 @@ function renameKeys(obj) {
 
 const styles = theme => {
 	return {
-		appBarSpacer: theme.mixins.toolbar,
+		appBarSpacer: defaultTheme.mixins.toolbar,
 		container: {
 			display: 'flex',
 			flexDirection: 'column',
 			height: '100%'
 		},
-		appBarContent: renameKeys(theme.mixins.toolbar)
+		appBarContent: renameKeys(defaultTheme.mixins.toolbar)
 	};
 };
 
@@ -65,7 +68,7 @@ function App({ classes }) {
 			to: '/classroom',
 			private: true,
 			exact: false,
-			auth: [authority.ADMIN, authority.INSTRUCTOR],
+			auth: [authority.SUPERADMIN, authority.ADMIN, authority.INSTRUCTOR],
 			icon: <SchoolIcon />,
 			sidebar: () => <Fragment>Classroom</Fragment>,
 			sidebarButton: (
@@ -82,10 +85,21 @@ function App({ classes }) {
 			to: '/users',
 			private: true,
 			exact: false,
-			auth: [authority.ADMIN, authority.INSTRUCTOR],
+			auth: [authority.SUPERADMIN, authority.ADMIN, authority.INSTRUCTOR],
 			icon: <ContactsICon />,
 			sidebar: () => <Fragment>Users</Fragment>,
 			main: () => <Users />,
+			sidebarIndex: 0
+		},
+		{
+			path: '/statistics/',
+			to: '/statistics',
+			private: true,
+			exact: false,
+			auth: [authority.ADMIN],
+			icon: <ShowChartIcon />,
+			sidebar: () => <Fragment>Statistics</Fragment>,
+			main: () => <Statistics />,
 			sidebarIndex: 0
 		},
 		{
@@ -104,7 +118,7 @@ function App({ classes }) {
 			to: '/openclass',
 			private: true,
 			exact: true,
-			auth: [authority.ADMIN, authority.INSTRUCTOR],
+			auth: [authority.SUPERADMIN, authority.ADMIN, authority.INSTRUCTOR],
 			icon: null,
 			sidebar: () => <Fragment>Open Class</Fragment>,
 			main: () => <OpenClass />,
@@ -115,7 +129,7 @@ function App({ classes }) {
 			to: '/manageclass',
 			private: true,
 			exact: true,
-			auth: [authority.ADMIN, authority.INSTRUCTOR],
+			auth: [authority.SUPERADMIN, authority.ADMIN, authority.INSTRUCTOR],
 			icon: null,
 			sidebar: () => <Fragment>Manage Class</Fragment>,
 			main: () => <ManageClass />,

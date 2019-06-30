@@ -1,6 +1,6 @@
 import React, { useState, Fragment, useEffect } from 'react';
 import { withRouter } from 'react-router';
-import withStyles from '@material-ui/core/styles/withStyles';
+import { withStyles, createMuiTheme } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Grid from '@material-ui/core/Grid';
 import Select from '@material-ui/core/Select';
@@ -27,45 +27,47 @@ import { foreground } from '../const/colors';
 import axios from 'axios';
 import Schedule from '../Organism/Schedule';
 
+const defaultTheme = createMuiTheme();
+
 const styles = theme => ({
 	root: {
 		backgroundColor: foreground.lightGreenGray,
-		paddingTop: theme.spacing(8)
+		paddingTop: defaultTheme.spacing(8)
 	},
 	main: {
 		width: 'auto',
 		display: 'block', // Fix IE 11 issue.
-		marginLeft: theme.spacing(3),
-		marginRight: theme.spacing(3),
-		[theme.breakpoints.up(900 + theme.spacing(3 * 2))]: {
+		marginLeft: defaultTheme.spacing(3),
+		marginRight: defaultTheme.spacing(3),
+		[defaultTheme.breakpoints.up(900 + defaultTheme.spacing(3 * 2))]: {
 			width: 900,
 			marginLeft: 'auto',
 			marginRight: 'auto'
 		}
 	},
 	sectionHeading: {
-		...theme.typography.button,
+		...defaultTheme.typography.button,
 		fontSize: '1rem'
 	},
 	paper: {
 		display: 'flex',
 		flexDirection: 'column',
 		alignItems: 'center',
-		padding: `${theme.spacing(2)}px ${theme.spacing(4)}px ${theme.spacing(6)}px`
+		padding: `${defaultTheme.spacing(2)}px ${defaultTheme.spacing(4)}px ${defaultTheme.spacing(6)}px`
 	},
 	avatar: {
-		margin: theme.spacing(1),
-		backgroundColor: theme.palette.secondary.main
+		margin: defaultTheme.spacing(1),
+		backgroundColor: defaultTheme.palette.secondary.main
 	},
 	form: {
 		width: '100%', // Fix IE 11 issue.
-		marginTop: theme.spacing(1)
+		marginTop: defaultTheme.spacing(1)
 	},
 	submit: {
 		width: 225,
-		marginTop: theme.spacing(3),
-		marginBottom: theme.spacing(3),
-		[theme.breakpoints.up(225 + theme.spacing(3 * 2))]: {
+		marginTop: defaultTheme.spacing(3),
+		marginBottom: defaultTheme.spacing(3),
+		[defaultTheme.breakpoints.up(225 + defaultTheme.spacing(3 * 2))]: {
 			width: 'auto'
 		}
 	},
@@ -76,17 +78,17 @@ const styles = theme => ({
 		flex: 1
 	},
 	gutterContainer: {
-		width: `calc(100% + ${theme.spacing(4)}px)`,
-		marginLeft: -2 * theme.spacing(1)
+		width: `calc(100% + ${defaultTheme.spacing(4)}px)`,
+		marginLeft: -2 * defaultTheme.spacing(1)
 	},
 	gutter: {
-		padding: theme.spacing(2)
+		padding: defaultTheme.spacing(2)
 	},
 	marginNormal: {
-		marginTop: theme.spacing(2),
-		marginBottom: theme.spacing(8)
+		marginTop: defaultTheme.spacing(2),
+		marginBottom: defaultTheme.spacing(8)
 	}
-	// scheduleBulletControl: theme.Input.FormControl
+	// scheduleBulletControl: defaultTheme.Input.FormControl
 });
 
 function ManageClass({ classes, match, history }) {

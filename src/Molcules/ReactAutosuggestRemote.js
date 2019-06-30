@@ -7,9 +7,10 @@ import match from 'autosuggest-highlight/match';
 import parse from 'autosuggest-highlight/parse';
 import Paper from '@material-ui/core/Paper';
 import MenuItem from '@material-ui/core/MenuItem';
-import { withStyles } from '@material-ui/core/styles';
+import { withStyles, createMuiTheme } from '@material-ui/core/styles';
 import ChipInput from 'material-ui-chip-input';
 
+const defaultTheme = createMuiTheme();
 function renderInput(inputProps) {
 	const { value, onChange, chips, ...other } = inputProps;
 	return <ChipInput inputValue={value} onUpdateInput={onChange} value={chips.map(c => c.profile.name)} {...other} />;
@@ -60,8 +61,8 @@ const styles = theme => ({
 	},
 	suggestionsContainerOpen: {
 		position: 'absolute',
-		marginTop: theme.spacing(1),
-		marginBottom: theme.spacing(3),
+		marginTop: defaultTheme.spacing(1),
+		marginBottom: defaultTheme.spacing(3),
 		left: 0,
 		right: 0,
 		zIndex: 1

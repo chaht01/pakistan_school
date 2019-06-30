@@ -4,7 +4,7 @@ import Remove from '@material-ui/icons/Remove';
 import Record from '@material-ui/icons/FiberManualRecordOutlined';
 import Clear from '@material-ui/icons/Clear';
 import FormGroup from '@material-ui/core/FormGroup';
-import { withStyles } from '@material-ui/styles';
+import { withStyles } from '@material-ui/core/styles';
 import { attendance, colorMatcher, attendMask } from '../const/attendance';
 
 const styles = {

@@ -1,8 +1,6 @@
 import React, { Fragment, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { MuiThemeProvider, createMuiTheme } from '@material-ui/core';
-import { ThemeProvider } from '@material-ui/styles';
-import { withStyles } from '@material-ui/core/styles';
+import { withStyles, MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Dialog from '@material-ui/core/Dialog';
@@ -291,7 +289,7 @@ function MakeUpPicker({ attObj, student, classroom, handleChange, targetDate, re
 		handleDate(value);
 	};
 	return (
-		<ThemeProvider theme={materialTheme(colorMatcher(attendance.makeup))}>
+		<MuiThemeProvider theme={materialTheme(colorMatcher(attendance.makeup))}>
 			<DatePicker
 				margin="normal"
 				label="Make up for"
@@ -305,7 +303,7 @@ function MakeUpPicker({ attObj, student, classroom, handleChange, targetDate, re
 				error={err}
 				helperText={err && `Invalid Absent Date`}
 			/>
-		</ThemeProvider>
+		</MuiThemeProvider>
 	);
 }
 
@@ -323,7 +321,7 @@ function LatePicker({ attObj, student, classroom, handleChange, targetDate, repo
 	}
 
 	return (
-		<ThemeProvider theme={materialTheme(colorMatcher(attendance.late))}>
+		<MuiThemeProvider theme={materialTheme(colorMatcher(attendance.late))}>
 			<TimePicker
 				margin="normal"
 				label="Late at"
@@ -332,7 +330,7 @@ function LatePicker({ attObj, student, classroom, handleChange, targetDate, repo
 				onChange={handleTime}
 				onAccept={onAccept}
 			/>
-		</ThemeProvider>
+		</MuiThemeProvider>
 	);
 }
 

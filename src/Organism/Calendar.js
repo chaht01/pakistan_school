@@ -2,11 +2,10 @@ import React, { Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
 import AbsenceDate from '../Organism/AbsenceDate';
-import { createMuiTheme, responsiveFontSizes, withStyles } from '@material-ui/core/styles';
+import { createMuiTheme, responsiveFontSizes, withStyles, MuiThemeProvider } from '@material-ui/core/styles';
 import { foreground, fonts } from '../const/colors';
 import Typography from '@material-ui/core/Typography';
 import { attendance, colorMatcher, scheduleMask } from '../const/attendance';
-import { ThemeProvider } from '@material-ui/styles';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
@@ -115,7 +114,7 @@ const styles = theme => ({
 function StudentRow({ classes, student, classroom, absenceStatus, startDate }) {
 	function onChange(resolved, offset) {}
 	return (
-		<ThemeProvider theme={theme}>
+		<MuiThemeProvider theme={theme}>
 			<div className={classes.student}>
 				<ListItem alignItems="center">
 					<Hidden mdDown>
@@ -145,7 +144,7 @@ function StudentRow({ classes, student, classroom, absenceStatus, startDate }) {
 					);
 				})}
 			</div>
-		</ThemeProvider>
+		</MuiThemeProvider>
 	);
 }
 
@@ -154,7 +153,7 @@ function Calendar({ classes, absences = [], classroom, classrooms, startDate, en
 	const today = new Date();
 	const StudentRowComp = withStyles(styles)(StudentRow);
 	return (
-		<ThemeProvider theme={theme}>
+		<MuiThemeProvider theme={theme}>
 			<Paper elevation={2} square={true} className={classes.weekDaysHeader}>
 				<Grid container alignContent="center" justify="center" className={classes.weekDay}>
 					<Hidden smDown>{`Total students: `}</Hidden>
@@ -210,7 +209,7 @@ function Calendar({ classes, absences = [], classroom, classrooms, startDate, en
 					</Grid>
 				)}
 			</div>
-		</ThemeProvider>
+		</MuiThemeProvider>
 	);
 }
 export default withStyles(styles)(Calendar);

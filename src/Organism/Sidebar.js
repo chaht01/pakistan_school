@@ -1,6 +1,6 @@
 import React, { Fragment, useState } from 'react';
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
-import { withStyles } from '@material-ui/styles';
+import { withStyles } from '@material-ui/core/styles';
 import { AuthConsumer } from '../Context/AuthContext';
 import Drawer from '@material-ui/core/Drawer';
 import MenuIcon from '@material-ui/icons/Menu';

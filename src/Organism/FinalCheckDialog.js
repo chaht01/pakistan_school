@@ -1,6 +1,6 @@
 import React, { useState, Fragment } from 'react';
 import Button from '@material-ui/core/Button';
-import withStyles from '@material-ui/core/styles/withStyles';
+import { withStyles, createMuiTheme } from '@material-ui/core/styles';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -10,11 +10,12 @@ import axios from 'axios';
 import { format } from 'date-fns';
 import { withRouter } from 'react-router';
 
+const defaultTheme = createMuiTheme();
 const styles = theme => ({
 	dialog: {
 		width: 'auto',
 		display: 'block', // Fix IE 11 issue.
-		[theme.breakpoints.up(900 + theme.spacing(3 * 2))]: {
+		[defaultTheme.breakpoints.up(900 + defaultTheme.spacing(3 * 2))]: {
 			width: 900,
 			marginLeft: 'auto',
 			marginRight: 'auto'

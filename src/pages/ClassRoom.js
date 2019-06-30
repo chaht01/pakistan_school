@@ -1,6 +1,6 @@
 import React, { Fragment, useState, useEffect } from 'react';
 import { PropTypes } from 'prop-types';
-import { withStyles, createMuiTheme, responsiveFontSizes } from '@material-ui/core/styles';
+import { withStyles, createMuiTheme, responsiveFontSizes, MuiThemeProvider } from '@material-ui/core/styles';
 import { withRouter } from 'react-router';
 import { DateConsumer } from '../Context/DateContext';
 import Typography from '@material-ui/core/Typography';
@@ -13,7 +13,6 @@ import ListItemText from '@material-ui/core/ListItemText';
 import Calendar from '../Organism/Calendar';
 import { base } from '../const/size';
 import { foreground, fonts } from '../const/colors';
-import { ThemeProvider } from '@material-ui/styles';
 import SettingsIcon from '@material-ui/icons/Settings';
 import IconButton from '@material-ui/core/IconButton';
 import Button from '@material-ui/core/Button';
@@ -193,7 +192,7 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 						building={building}
 						classroom={selectedClassroom}
 						adornment={
-							<ThemeProvider theme={theme}>
+							<MuiThemeProvider theme={theme}>
 								<Grid container alignItems="center" spacing={6}>
 									<Grid item>
 										<FormControl className={classes.formControl}>
@@ -244,7 +243,7 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 													)}
 												</Grid>
 												<Grid item>
-													<ThemeProvider
+													<MuiThemeProvider
 														theme={createMuiTheme({
 															palette: {
 																primary: {
@@ -265,13 +264,13 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 																Manage
 															</Button>
 														)}
-													</ThemeProvider>
+													</MuiThemeProvider>
 												</Grid>
 											</Grid>
 										</Grid>
 									</Hidden>
 								</Grid>
-							</ThemeProvider>
+							</MuiThemeProvider>
 						}
 						current={selectedDate}
 					>

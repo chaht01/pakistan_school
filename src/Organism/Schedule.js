@@ -1,5 +1,5 @@
 import React, { useState, Fragment, useEffect } from 'react';
-import withStyles from '@material-ui/core/styles/withStyles';
+import { withStyles, createMuiTheme } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormControl from '@material-ui/core/FormControl';
@@ -8,6 +8,7 @@ import ScheduleBullet from '../Molcules/ScheduleBullet';
 import { foreground } from '../const/colors';
 import { isBefore, isAfter } from 'date-fns';
 
+const defaultTheme = createMuiTheme();
 function Schedule({
 	classes,
 	disabled,
@@ -128,7 +129,7 @@ export default withStyles(theme => ({
 		flex: 1
 	},
 	gutter: {
-		padding: theme.spacing(2)
+		padding: defaultTheme.spacing(2)
 	},
 	disabled: {
 		backgroundColor: foreground.lightGray

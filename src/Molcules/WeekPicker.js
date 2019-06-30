@@ -10,7 +10,7 @@ import withWidth, { isWidthUp } from '@material-ui/core/withWidth';
 // @ts-ignore this guy required only on the docs site to work with dynamic date library
 // import { cloneCrossUtils } from 'utils/helpers';
 import { DatePicker, Calendar } from '@material-ui/pickers';
-import { createStyles } from '@material-ui/styles';
+import { createStyles } from '@material-ui/core/styles';
 import { IconButton, withStyles } from '@material-ui/core';
 import DateRangeIcon from '@material-ui/icons/DateRange';
 
