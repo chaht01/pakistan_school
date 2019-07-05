@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { BrowserRouter as Router, Route, Link, withRouter } from 'react-router-dom';
 import { withStyles, createMuiTheme } from '@material-ui/core/styles';
 import { foreground, fonts } from '../const/colors';
@@ -23,6 +24,7 @@ import TableRow from '@material-ui/core/TableRow';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { Typography } from '../../node_modules/@material-ui/core';
+import { subDays, subMonths, isSameDay, isAfter, format, addDays, differenceInDays } from 'date-fns';
 
 const defaultTheme = createMuiTheme();
 
@@ -130,9 +132,9 @@ function Statistics({ classes, location }) {
 	const pg = params.get('p');
 
 	const categories = [
-		{ label: 'Admission Number', value: 0 },
-		{ label: 'Class', value: 1 },
-		{ label: 'Building', value: 2 }
+		{ label: 'Batch', value: 0, param: 'batch' },
+		{ label: 'Classroom', value: 1, param: 'classroom' },
+		{ label: 'Building', value: 2, param: 'building' }
 	];
 
 	const ranges = [
@@ -144,23 +146,89 @@ function Statistics({ classes, location }) {
 	const [category, setCategory] = useState(cat === null ? 0 : cat);
 	const [range, setRange] = useState(rng === null ? 0 : rng);
 	const [page, setPage] = useState(pg === null ? 0 : pg);
-	const [data, setData] = useState([]);
-	const [loading, setLoading] = useState(false);
+	const [data, setData] = useState(null);
+	const [loading, setLoading] = useState(true);
+	const [dateRange, setDateRange] = useState({ start: subDays(new Date(), 6), end: new Date() });
+
+	function computeDateInRange() {
+		let start = new Date();
+		let end = new Date();
+		if (range === 0) {
+			start = subDays(end, 6);
+		} else if (range === 1) {
+			start = subMonths(end, 1);
+		} else if (range === 2) {
+			start = subMonths(end, 6);
+		}
+		setDateRange({ start, end });
+	}
 
 	useEffect(
 		() => {
-			setLoading(true);
-			setData([]);
-			setTimeout(() => {
-				setData(Array(page + 1).fill(0));
-				setLoading(false);
-			}, 1000);
+			computeDateInRange();
 		},
-		[page]
+		[range]
+	);
+
+	useEffect(
+		() => {
+			const CancelToken = axios.CancelToken;
+			const source = CancelToken.source();
+			function cleanup() {
+				source.cancel('canceled');
+			}
+
+			async function fetchStatistics() {
+				setLoading(true);
+				setData(null);
+				const { start, end } = dateRange;
+				const { data: { data: statistics } } = await axios({
+					method: 'get',
+					url: `/api/statistics/absence-trends?start_date=${format(start, 'yyyy-MM-dd')}&end_date=${format(
+						end,
+						'yyyy-MM-dd'
+					)}&classification_type=${categories.find(cat => cat.value === category).param}`,
+					cancelToken: source.token
+				});
+
+				const processedData = statistics.map(stat => ({
+					...stat,
+					chartData: [
+						['Day', `${stat.key.name}`],
+						...(() => {
+							let curr = start;
+							let ret = [];
+							while (!isAfter(curr, end)) {
+								ret.push([format(curr, 'MM/dd'), 0]);
+								curr = addDays(curr, 1);
+							}
+							// console.log(ret);
+							stat.trends.map(({ percentage, date }) => {
+								const diff = differenceInDays(new Date(date), start);
+								// console.log(start, date, diff);
+								ret[diff][1] = percentage;
+							});
+							return ret;
+						})()
+					],
+					tableData: stat.worst_students
+				}));
+
+				setData(processedData);
+				setLoading(false);
+			}
+			// setTimeout(() => {
+			// 	setData(Array(page + 1).fill(0));
+			// 	setLoading(false);
+			// }, 1000);
+			fetchStatistics();
+			return cleanup;
+		},
+		[dateRange, category]
 	);
 
 	function handlePage(offset) {
-		if (page + offset <= 0 || data.length === 0 || loading) {
+		if (page + offset <= 0 || data === null || loading) {
 			return;
 		}
 		setPage(page + offset);
@@ -205,7 +273,7 @@ function Statistics({ classes, location }) {
 							</Select>
 						</FormControl>
 						<Box className={classes.formButton}>
-							<Box className={classes.pagination}>
+							{/* <Box className={classes.pagination}>
 								<Tooltip title="Prev page" aria-label="prev">
 									<IconButton aria-label="Prev Week" size="small" onClick={e => handlePage(-1)}>
 										<ChevronLeftIcon />
@@ -217,45 +285,44 @@ function Statistics({ classes, location }) {
 										<ChevronRightIcon />
 									</IconButton>
 								</Tooltip>
-							</Box>
-							<Button variant="contained" color="primary">
+							</Box> */}
+							{/* <Button variant="contained" color="primary">
 								Find
-							</Button>
+							</Button> */}
 						</Box>
 					</Grid>
 				</Paper>
 				{loading ? (
 					<CircularProgress />
 				) : (
-					data.map(_ => (
+					data.map(({ key, chartData, tableData }) => (
 						<Paper className={classes.chartContainer}>
+							<Container>
+								<Typography variant="h5" gutterBottom>
+									{key.name}
+								</Typography>
+							</Container>
 							<Container className={classes.chartWrapper}>
 								<Container className={classes.chartInner}>
 									<Chart
 										width={'100%'}
 										height={'100%'}
-										chartType="ColumnChart"
-										loader={<CircularProgress className={classes.progress} />}
-										data={[
-											['City', '2010 Population', '2000 Population'],
-											['New York City, NY', 8175000, 8008000],
-											['Los Angeles, CA', 3792000, 3694000],
-											['Chicago, IL', 2695000, 2896000],
-											['Houston, TX', 2099000, 1953000],
-											['Philadelphia, PA', 1526000, 1517000]
-										]}
+										chartType="Line"
+										loader={<CircularProgress />}
+										data={chartData}
 										options={{
-											title: 'Population of Largest U.S. Cities',
-											chartArea: { width: '30%' },
-											hAxis: {
-												title: 'Total Population',
-												minValue: 0
+											chart: {
+												title: `Attendance Rate classified by ${categories.find(
+													cat => cat.value === category
+												).label}`,
+												subtitle: `${format(dateRange.start, 'yyyy-MM-dd')}~${format(
+													dateRange.end,
+													'yyyy-MM-dd'
+												)}`
 											},
-											vAxis: {
-												title: 'City'
-											}
+											legend: { position: 'none' }
 										}}
-										legendToggle
+										rootProps={{ 'data-testid': '3' }}
 									/>
 								</Container>
 							</Container>
@@ -263,23 +330,17 @@ function Statistics({ classes, location }) {
 								<Table className={classes.table}>
 									<TableHead>
 										<TableRow>
-											<TableCell>Dessert (100g serving)</TableCell>
-											<TableCell align="right">Calories</TableCell>
-											<TableCell align="right">Fat&nbsp;(g)</TableCell>
-											<TableCell align="right">Carbs&nbsp;(g)</TableCell>
-											<TableCell align="right">Protein&nbsp;(g)</TableCell>
+											<TableCell>Name</TableCell>
+											<TableCell align="right">Attendance Rate</TableCell>
 										</TableRow>
 									</TableHead>
 									<TableBody>
-										{rows.map(row => (
-											<TableRow key={row.name}>
+										{tableData.map(({ student, student_name, percentage }) => (
+											<TableRow key={student}>
 												<TableCell component="th" scope="row">
-													{row.name}
+													{student_name}
 												</TableCell>
-												<TableCell align="right">{row.calories}</TableCell>
-												<TableCell align="right">{row.fat}</TableCell>
-												<TableCell align="right">{row.carbs}</TableCell>
-												<TableCell align="right">{row.protein}</TableCell>
+												<TableCell align="right">{`${percentage}%`}</TableCell>
 											</TableRow>
 										))}
 									</TableBody>

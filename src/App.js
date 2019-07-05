@@ -96,7 +96,7 @@ function App({ classes }) {
 			to: '/statistics',
 			private: true,
 			exact: false,
-			auth: [authority.ADMIN],
+			auth: [authority.SUPERADMIN, authority.ADMIN],
 			icon: <ShowChartIcon />,
 			sidebar: () => <Fragment>Statistics</Fragment>,
 			main: () => <Statistics />,

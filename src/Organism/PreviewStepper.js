@@ -86,7 +86,7 @@ function PreviewStepper({ classes, width, classInfo = [] }) {
 						onChangeIndex={handleStepChange}
 						springConfig={{ duration: '.5s', easeFunction: 'ease-in-out', delay: '0s' }}
 						style={{ width: '100%' }}
-						interval={3000}
+						interval={30 * 1000}
 						enableMouseEvents
 					>
 						{groupedClass.map((group, index) => (
