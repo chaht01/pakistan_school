@@ -3,14 +3,11 @@ import axios from 'axios';
 import { BrowserRouter as Router, Route, withRouter } from 'react-router-dom';
 import { withStyles, createMuiTheme } from '@material-ui/core/styles';
 import { foreground, fonts } from '../const/colors';
-import Chart from 'react-google-charts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
+import FormGroup from '@material-ui/core/FormGroup';
 import Box from '@material-ui/core/Box';
-import Tooltip from '@material-ui/core/Tooltip';
-import IconButton from '@material-ui/core/IconButton';
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import Container from '@material-ui/core/Container';
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
@@ -25,6 +22,8 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import Typography from '@material-ui/core/Typography';
 import Avatar from '@material-ui/core/Avatar';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Switch from '@material-ui/core/Switch';
 import { subDays, subMonths, isSameDay, isAfter, format, addDays, differenceInDays } from 'date-fns';
 import chroma from 'chroma-js';
 import Link from '@material-ui/core/Link';
@@ -37,10 +36,12 @@ import UserClassrooms from '../Organism/UserClassrooms';
 const defaultTheme = createMuiTheme();
 
 const responsivePaperContainer = {
-	padding: defaultTheme.spacing(3),
+	paddingTop: defaultTheme.spacing(3),
+	paddingBottom: defaultTheme.spacing(3),
 	marginBottom: defaultTheme.spacing(4),
 	[defaultTheme.breakpoints.down('sm')]: {
-		padding: defaultTheme.spacing(2)
+		paddingTop: defaultTheme.spacing(2),
+		paddingBottom: defaultTheme.spacing(2)
 	}
 };
 
@@ -69,6 +70,11 @@ const styles = theme => ({
 	},
 	toolbar: {
 		...responsivePaperContainer,
+		padding: defaultTheme.spacing(3),
+
+		[defaultTheme.breakpoints.down('sm')]: {
+			padding: defaultTheme.spacing(2)
+		},
 		display: 'flex',
 		alignItems: 'center',
 		position: 'sticky',
@@ -89,6 +95,12 @@ const styles = theme => ({
 			marginRight: defaultTheme.spacing(2)
 		}
 	},
+	collapseCell: {
+		borderBottom: '1px dashed #dddddd'
+	},
+	collapseTBody: {
+		borderBottom: '1px solid #dddddd'
+	},
 	chartWrapper: {
 		width: '100%',
 		paddingTop: '56.25%',
@@ -99,7 +111,8 @@ const styles = theme => ({
 		height: '100%',
 		position: 'absolute',
 		left: 0,
-		top: 0
+		top: 0,
+		fontFamily: `"Roboto", "Helvetica", "Arial", sans-serif`
 	},
 	dialogAvatar: {
 		display: 'inline-flex',
@@ -153,8 +166,13 @@ function Statistics({ classes, location }) {
 	const [dateRange, setDateRange] = useState({ start: subDays(new Date(), 6), end: new Date() });
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [dialogStudent, setDialogStudent] = useState(null);
+	const [collapse, setCollapse] = useState(false);
 	const CancelToken = axios.CancelToken;
 	const source = CancelToken.source();
+
+	function handleCollapse(e) {
+		setCollapse(e.target.checked);
+	}
 
 	function handleDialogOpen(student) {
 		async function fetchStudent(student) {
@@ -220,7 +238,6 @@ function Statistics({ classes, location }) {
 				const processedData = statistics.map(stat => ({
 					...stat,
 					chartData: [
-						['Day', `${stat.key.name}`],
 						...(() => {
 							let curr = start;
 							let ret = [];
@@ -228,13 +245,11 @@ function Statistics({ classes, location }) {
 								ret.push([format(curr, 'MM/dd'), 0]);
 								curr = addDays(curr, 1);
 							}
-							// console.log(ret);
 							stat.trends.map(({ percentage, date }) => {
 								const diff = differenceInDays(new Date(date), start);
-								// console.log(start, date, diff);
 								ret[diff][1] = percentage;
 							});
-							return ret;
+							return ret.map(elem => ({ name: elem[0], [stat.key.name]: elem[1] }));
 						})()
 					],
 					tableData: stat.worst_students
@@ -243,10 +258,6 @@ function Statistics({ classes, location }) {
 				setData(processedData);
 				setLoading(false);
 			}
-			// setTimeout(() => {
-			// 	setData(Array(page + 1).fill(0));
-			// 	setLoading(false);
-			// }, 1000);
 			fetchStatistics();
 			return cleanup;
 		},
@@ -259,7 +270,8 @@ function Statistics({ classes, location }) {
 		}
 		setPage(page + offset);
 	}
-	const palette = chroma.scale([foreground.red, foreground.emerald]).mode('lch');
+	const scoreScale = chroma.scale([foreground.red, foreground.emerald]).mode('lch');
+	const legendScale = chroma.scale([foreground.cobalt, foreground.purple, foreground.yellow]).mode('lch');
 	return (
 		<div className={classes.wrapper}>
 			<div className={classes.main}>
@@ -300,6 +312,20 @@ function Statistics({ classes, location }) {
 							</Select>
 						</FormControl>
 						<Box className={classes.formButton}>
+							<FormGroup
+								aria-label="position"
+								name="position"
+								value={collapse}
+								onChange={handleCollapse}
+								row
+							>
+								<FormControlLabel
+									value={collapse}
+									control={<Switch color="primary" />}
+									label="Collapse"
+									labelPlacement="top"
+								/>
+							</FormGroup>
 							{/* <Box className={classes.pagination}>
 								<Tooltip title="Prev page" aria-label="prev">
 									<IconButton aria-label="Prev Week" size="small" onClick={e => handlePage(-1)}>
@@ -325,36 +351,105 @@ function Statistics({ classes, location }) {
 					<Typography variant="h4" align="center">
 						No result to be shown
 					</Typography>
+				) : collapse ? (
+					<Paper className={classes.chartContainer}>
+						<Container>
+							<Typography variant="h5" gutterBottom>
+								{`Attendance Rate classified by ${categories.find(cat => cat.value === category)
+									.label} (collapsed)`}
+							</Typography>
+							<Typography variant="subtitle2" gutterBottom>{`${format(
+								dateRange.start,
+								'yyyy-MM-dd'
+							)}~${format(dateRange.end, 'yyyy-MM-dd')}`}</Typography>
+						</Container>
+						<Container className={classes.chartWrapper}>
+							<Container className={classes.chartInner}>
+								<ResponsiveContainer>
+									<LineChart
+										data={data.reduce(
+											(acc, { key, chartData, tableData }) =>
+												chartData.map((row, idx) => ({ ...acc[idx], ...row })),
+											[]
+										)}
+									>
+										<CartesianGrid strokeDasharray="3 3" />
+										<XAxis dataKey="name" />
+										<YAxis />
+										<Tooltip />
+										<Legend />
+										{data.map(({ key, chartData, tableData }, idx, origin) => (
+											<Line
+												key={key.name}
+												type="monotone"
+												dataKey={key.name}
+												stroke={legendScale.colors(origin.length + 1)[idx]}
+											/>
+										))}
+									</LineChart>
+								</ResponsiveContainer>
+							</Container>
+						</Container>
+						<Container className={classes.chartDetail}>
+							<Table className={classes.table}>
+								<TableHead>
+									<TableRow>
+										<TableCell>{categories.find(cat => cat.value === category).label}</TableCell>
+										<TableCell>Name</TableCell>
+										<TableCell align="right">Attendance Rate</TableCell>
+									</TableRow>
+								</TableHead>
+								{data.map(({ key, chartData, tableData }, idx, origin) => (
+									<TableBody className={classes.collapseTBody}>
+										{tableData.map(({ student, student_name, percentage }) => (
+											<TableRow key={student}>
+												<TableCell className={classes.collapseCell}>{key.name}</TableCell>
+												<TableCell className={classes.collapseCell} component="th" scope="row">
+													<Link onClick={() => handleDialogOpen(student)}>
+														{student_name}
+													</Link>
+												</TableCell>
+												<TableCell
+													className={classes.collapseCell}
+													align="right"
+													style={{
+														color: scoreScale.colors(11)[
+															Math.floor(Number(percentage) / 10)
+														]
+													}}
+												>{`${percentage}%`}</TableCell>
+											</TableRow>
+										))}
+									</TableBody>
+								))}
+							</Table>
+						</Container>
+					</Paper>
 				) : (
 					data.map(({ key, chartData, tableData }) => (
 						<Paper className={classes.chartContainer}>
 							<Container>
 								<Typography variant="h5" gutterBottom>
-									{key.name}
+									{`Attendance Rate classified by ${categories.find(cat => cat.value === category)
+										.label} (${key.name})`}
 								</Typography>
+								<Typography variant="subtitle2" gutterBottom>{`${format(
+									dateRange.start,
+									'yyyy-MM-dd'
+								)}~${format(dateRange.end, 'yyyy-MM-dd')}`}</Typography>
 							</Container>
 							<Container className={classes.chartWrapper}>
 								<Container className={classes.chartInner}>
-									<Chart
-										width={'100%'}
-										height={'100%'}
-										chartType="Line"
-										loader={<CircularProgress />}
-										data={chartData}
-										options={{
-											chart: {
-												title: `Attendance Rate classified by ${categories.find(
-													cat => cat.value === category
-												).label}`,
-												subtitle: `${format(dateRange.start, 'yyyy-MM-dd')}~${format(
-													dateRange.end,
-													'yyyy-MM-dd'
-												)}`
-											},
-											legend: { position: 'none' }
-										}}
-										rootProps={{ 'data-testid': '3' }}
-									/>
+									<ResponsiveContainer>
+										<LineChart data={chartData}>
+											<CartesianGrid strokeDasharray="3 3" />
+											<XAxis dataKey="name" />
+											<YAxis />
+											<Tooltip />
+											<Legend />
+											<Line type="monotone" dataKey={key.name} stroke={foreground.cobalt} />
+										</LineChart>
+									</ResponsiveContainer>
 								</Container>
 							</Container>
 							<Container className={classes.chartDetail}>
@@ -369,14 +464,16 @@ function Statistics({ classes, location }) {
 										{tableData.map(({ student, student_name, percentage }) => (
 											<TableRow key={student}>
 												<TableCell component="th" scope="row">
-													<Link href="javascript:;" onClick={() => handleDialogOpen(student)}>
+													<Link onClick={() => handleDialogOpen(student)}>
 														{student_name}
 													</Link>
 												</TableCell>
 												<TableCell
 													align="right"
 													style={{
-														color: palette.colors(11)[Math.floor(Number(percentage) / 10)]
+														color: scoreScale.colors(11)[
+															Math.floor(Number(percentage) / 10)
+														]
 													}}
 												>{`${percentage}%`}</TableCell>
 											</TableRow>
