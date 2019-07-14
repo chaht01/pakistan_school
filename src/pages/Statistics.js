@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import axios from 'axios';
-import { BrowserRouter as Router, Route, Link, withRouter } from 'react-router-dom';
+import { BrowserRouter as Router, Route, withRouter } from 'react-router-dom';
 import { withStyles, createMuiTheme } from '@material-ui/core/styles';
 import { foreground, fonts } from '../const/colors';
 import Chart from 'react-google-charts';
@@ -23,8 +23,16 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
-import { Typography } from '../../node_modules/@material-ui/core';
+import Typography from '@material-ui/core/Typography';
+import Avatar from '@material-ui/core/Avatar';
 import { subDays, subMonths, isSameDay, isAfter, format, addDays, differenceInDays } from 'date-fns';
+import chroma from 'chroma-js';
+import Link from '@material-ui/core/Link';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import UserClassrooms from '../Organism/UserClassrooms';
 
 const defaultTheme = createMuiTheme();
 
@@ -93,7 +101,13 @@ const styles = theme => ({
 		left: 0,
 		top: 0
 	},
-
+	dialogAvatar: {
+		display: 'inline-flex',
+		verticalAlignment: 'middle'
+	},
+	dialogContent: {
+		padding: 0
+	},
 	formButton: {
 		marginLeft: 'auto',
 		marginRight: 0,
@@ -112,18 +126,6 @@ const styles = theme => ({
 		}
 	}
 });
-
-function createData(name, calories, fat, carbs, protein) {
-	return { name, calories, fat, carbs, protein };
-}
-
-const rows = [
-	createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-	createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-	createData('Eclair', 262, 16.0, 24, 6.0),
-	createData('Cupcake', 305, 3.7, 67, 4.3),
-	createData('Gingerbread', 356, 16.0, 49, 3.9)
-];
 
 function Statistics({ classes, location }) {
 	let params = new URLSearchParams(location.search);
@@ -149,6 +151,30 @@ function Statistics({ classes, location }) {
 	const [data, setData] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [dateRange, setDateRange] = useState({ start: subDays(new Date(), 6), end: new Date() });
+	const [dialogOpen, setDialogOpen] = useState(false);
+	const [dialogStudent, setDialogStudent] = useState(null);
+	const CancelToken = axios.CancelToken;
+	const source = CancelToken.source();
+
+	function handleDialogOpen(student) {
+		async function fetchStudent(student) {
+			const { data: studentFetched } = await axios({
+				method: 'get',
+				url: `/api/users/${student}/`,
+				cancelToken: source.token
+			});
+			setDialogStudent(studentFetched);
+		}
+		setDialogStudent(null);
+		fetchStudent(student);
+		setDialogOpen(true);
+	}
+
+	function handleDialogClose() {
+		setDialogStudent(null);
+		setDialogOpen(false);
+		source.cancel('canceled');
+	}
 
 	function computeDateInRange() {
 		let start = new Date();
@@ -233,6 +259,7 @@ function Statistics({ classes, location }) {
 		}
 		setPage(page + offset);
 	}
+	const palette = chroma.scale([foreground.red, foreground.emerald]).mode('lch');
 	return (
 		<div className={classes.wrapper}>
 			<div className={classes.main}>
@@ -294,6 +321,10 @@ function Statistics({ classes, location }) {
 				</Paper>
 				{loading ? (
 					<CircularProgress />
+				) : data.length === 0 ? (
+					<Typography variant="h4" align="center">
+						No result to be shown
+					</Typography>
 				) : (
 					data.map(({ key, chartData, tableData }) => (
 						<Paper className={classes.chartContainer}>
@@ -338,9 +369,16 @@ function Statistics({ classes, location }) {
 										{tableData.map(({ student, student_name, percentage }) => (
 											<TableRow key={student}>
 												<TableCell component="th" scope="row">
-													{student_name}
+													<Link href="javascript:;" onClick={() => handleDialogOpen(student)}>
+														{student_name}
+													</Link>
 												</TableCell>
-												<TableCell align="right">{`${percentage}%`}</TableCell>
+												<TableCell
+													align="right"
+													style={{
+														color: palette.colors(11)[Math.floor(Number(percentage) / 10)]
+													}}
+												>{`${percentage}%`}</TableCell>
 											</TableRow>
 										))}
 									</TableBody>
@@ -350,6 +388,46 @@ function Statistics({ classes, location }) {
 					))
 				)}
 			</div>
+
+			<Dialog
+				open={dialogOpen}
+				onClose={handleDialogClose}
+				aria-labelledby="alert-dialog-title"
+				aria-describedby="alert-dialog-description"
+				maxWidth="lg"
+			>
+				<DialogTitle id="alert-dialog-title">
+					{dialogStudent && (
+						<Fragment>
+							<Avatar
+								className={classes.dialogAvatar}
+								alt={dialogStudent.profile.name}
+								src={dialogStudent.profile.picture}
+							>
+								{dialogStudent.profile.name[0]}
+							</Avatar>{' '}
+							{dialogStudent.profile.name}'s
+						</Fragment>
+					)}{' '}
+					Classrooms
+				</DialogTitle>
+				<DialogContent className={classes.dialogContent}>
+					{dialogStudent === null ? (
+						<CircularProgress />
+					) : (
+						<UserClassrooms
+							classrooms={dialogStudent.classrooms}
+							student={dialogStudent.id}
+							style={{ justifyContent: 'center' }}
+						/>
+					)}
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={handleDialogClose} color="primary">
+						Close
+					</Button>
+				</DialogActions>
+			</Dialog>
 		</div>
 	);
 }

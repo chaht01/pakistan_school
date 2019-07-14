@@ -15,6 +15,13 @@ import { attendance, asyncAttendance } from '../const/attendance';
 import format from 'date-fns/format';
 import { DateConsumer } from '../Context/DateContext';
 import axios from 'axios';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import Button from '@material-ui/core/Button';
 
 const defaultTheme = createMuiTheme();
 const Carousel = styled.div`
@@ -57,11 +64,17 @@ function Dashboard({ classes, range: [startDate, endDate] }) {
 	const { attended, none, absence, scheduled, makeup } = attendance;
 	const [classInfo, setClassInfo] = useState([]);
 	const [timer, setTimer] = useState(new Date());
+	const [loaded, setLoaded] = useState(false);
+	const [dialogOpened, setDialogOpened] = useState(false);
 	const [buildings, setBuildings] = useState([]);
 	const [building, setBuilding] = useState(-1);
 	const handleChange = event => {
 		setBuilding(oldValues => event.target.value);
 	};
+
+	function handleDialogClose() {
+		setDialogOpened(false);
+	}
 
 	function tick() {
 		setTimer(new Date());
@@ -71,7 +84,13 @@ function Dashboard({ classes, range: [startDate, endDate] }) {
 		async function fetchBuildings() {
 			const { data } = await axios({ method: 'get', url: '/api/buildings/' });
 			setBuildings(data);
-			setBuilding(data[0].id);
+			console.log(data);
+			if (data[0] === undefined) {
+				setLoaded(true);
+				setDialogOpened(true);
+			} else {
+				setBuilding(data[0].id);
+			}
 		}
 		fetchBuildings();
 	}, []);
@@ -153,6 +172,7 @@ function Dashboard({ classes, range: [startDate, endDate] }) {
 
 				console.log(processed);
 				setClassInfo(processed.filter(({ absences }) => absences.length > 0));
+				setLoaded(true);
 			}
 			fetchClassRoom();
 			return function cleanup() {
@@ -169,9 +189,19 @@ function Dashboard({ classes, range: [startDate, endDate] }) {
 					<Statbar
 						adornment={
 							<FormControl className={classes.formControl}>
-								<Select value={building} autoWidth displayEmpty name="building" onChange={handleChange}>
-									{buildings.map(b => <MenuItem value={b.id}>{b.name}</MenuItem>)}
-								</Select>
+								{loaded ? (
+									<Select
+										value={building}
+										autoWidth
+										displayEmpty
+										name="building"
+										onChange={handleChange}
+									>
+										{buildings.map(b => <MenuItem value={b.id}>{b.name}</MenuItem>)}
+									</Select>
+								) : (
+									<CircularProgress />
+								)}
 							</FormControl>
 						}
 						building={building}
@@ -181,6 +211,25 @@ function Dashboard({ classes, range: [startDate, endDate] }) {
 					</Statbar>
 				)}
 			</DateConsumer>
+			<Dialog
+				open={dialogOpened}
+				onClose={handleDialogClose}
+				aria-labelledby="alert-dialog-title"
+				aria-describedby="alert-dialog-description"
+			>
+				<DialogTitle id="alert-dialog-title">{'Warning'}</DialogTitle>
+				<DialogContent>
+					<DialogContentText id="alert-dialog-description">
+						You may not be assigned any buidling to manage. Contact administrator of this service who can
+						access backend web UI to assign buildings to your account.
+					</DialogContentText>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={handleDialogClose} color="primary">
+						Confirm
+					</Button>
+				</DialogActions>
+			</Dialog>
 		</Fragment>
 	);
 }
