@@ -143,21 +143,23 @@ function ClassRoom({ classes, title, lecturers = [], absences, match, range: [st
 						const offset = differenceInDays(new Date(attd.date), startDate);
 						const currentStatus = attendance[asyncAttendance[attd.status]];
 						const cat_status = [late, makeup].indexOf(currentStatus);
-						arrangeByStudent[attd.student]['absenceStatus'][offset] = new AttStat(currentStatus, {
-							date:
-								cat_status > -1
-									? cat_status === 0
-										? (() => {
-												let d = addDays(startDate, offset);
-												let tokens = attd.clock_in_time.split(':');
-												d.setHours(tokens[0]);
-												d.setMinutes(tokens[1]);
-												return d;
-											})()
-										: new Date(attd.make_up_for)
-									: null,
-							remote: attd
-						});
+						if (arrangeByStudent[attd.student] !== undefined) {
+							arrangeByStudent[attd.student]['absenceStatus'][offset] = new AttStat(currentStatus, {
+								date:
+									cat_status > -1
+										? cat_status === 0
+											? (() => {
+													let d = addDays(startDate, offset);
+													let tokens = attd.clock_in_time.split(':');
+													d.setHours(tokens[0]);
+													d.setMinutes(tokens[1]);
+													return d;
+												})()
+											: new Date(attd.make_up_for)
+										: null,
+								remote: attd
+							});
+						}
 					});
 
 					let absences = Object.entries(arrangeByStudent).map(([id, attendanceStatus]) => ({

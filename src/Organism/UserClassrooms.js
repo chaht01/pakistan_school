@@ -23,9 +23,9 @@ const styles = theme => ({
 		display: 'inline-block'
 	}
 });
-function UserClassrooms({ classes, classrooms, student }) {
+function UserClassrooms({ classes, classrooms, student, ...rest }) {
 	return (
-		<Grid container className={classes.root}>
+		<Grid container className={classes.root} {...rest}>
 			{classrooms.map(classroom => (
 				<Card key={classroom.id} comonent={Grid} className={classes.card}>
 					<CardContent className={classes.cardContent}>
