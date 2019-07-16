@@ -116,7 +116,7 @@ const styles = theme => ({
 	},
 	dialogAvatar: {
 		display: 'inline-flex',
-		verticalAlignment: 'middle'
+		verticalAlign: 'middle'
 	},
 	dialogContent: {
 		padding: 0
@@ -401,10 +401,17 @@ function Statistics({ classes, location }) {
 								</TableHead>
 								{data.map(({ key, chartData, tableData }, idx, origin) => (
 									<TableBody className={classes.collapseTBody}>
-										{tableData.map(({ student, student_name, percentage }) => (
+										{tableData.map(({ student, student_name, student_picture, percentage }) => (
 											<TableRow key={student}>
 												<TableCell className={classes.collapseCell}>{key.name}</TableCell>
 												<TableCell className={classes.collapseCell} component="th" scope="row">
+													<Avatar
+														className={classes.dialogAvatar}
+														alt={student_name}
+														src={student_picture}
+													>
+														{student_name[0]}
+													</Avatar>{' '}
 													<Link onClick={() => handleDialogOpen(student)}>
 														{student_name}
 													</Link>
@@ -461,10 +468,17 @@ function Statistics({ classes, location }) {
 										</TableRow>
 									</TableHead>
 									<TableBody>
-										{tableData.map(({ student, student_name, percentage }) => (
+										{tableData.map(({ student, student_name, student_picture, percentage }) => (
 											<TableRow key={student}>
 												<TableCell component="th" scope="row">
-													<Link onClick={() => handleDialogOpen(student)}>
+													<Avatar
+														className={classes.dialogAvatar}
+														alt={student_name}
+														src={student_picture}
+													>
+														{student_name[0]}
+													</Avatar>{' '}
+													<Link href="javascript:;" onClick={() => handleDialogOpen(student)}>
 														{student_name}
 													</Link>
 												</TableCell>
