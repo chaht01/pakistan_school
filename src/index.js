@@ -12,7 +12,6 @@ import { StylesProvider, createGenerateClassName } from '@material-ui/styles';
 import DateFnsUtils from '@date-io/date-fns';
 const generateClassName = createGenerateClassName({
 	productionPrefix: 'mt'
-	// seed: 'mt'
 });
 const theme = createMuiTheme({
 	palette: {
